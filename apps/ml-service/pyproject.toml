@@ -1,0 +1,80 @@
+[tool.poetry]
+name = "crime-intelligence-ml-service"
+version = "1.0.0"
+description = "Machine Learning microservice for Crime Intelligence Platform (Karnataka Police)"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.15"
+fastapi = "0.115.0"
+uvicorn = "0.30.0"
+sentence-transformers = "3.0.0"
+networkx = "3.3"
+numpy = "^2.3.0"
+pandas = "^2.3.0"
+pydantic = "^2.12.0"
+joblib = "1.4.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+pytest-asyncio = "^0.23"
+httpx = "^0.27"
+black = "^24.0"
+ruff = "^0.4"
+mypy = "^1.9"
+
+[tool.poetry.scripts]
+serve = "app.cli:serve"
+train-models = "app.train:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.plugins]
+# Optional: if you want to add custom plugins
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM", "T20"]
+ignore = ["E501", "B008"]
+fixable = ["F", "I", "W", "UP", "B", "C4", "SIM", "T20"]
+unfixable = ["E", "S"]
+exclude = [".git", "__pycache__", ".venv", "dist", "build"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+show_error_codes = true
+namespace_packages = true
+explicit_package_bases = true
