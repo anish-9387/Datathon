@@ -1,0 +1,90 @@
+"use client"
+
+import { motion } from "framer-motion"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+
+interface Gang {
+  id: string
+  name: string
+  members: number
+  influence: number
+  leader: string
+  area: string
+  crimes: string[]
+  formed: string
+  status: string
+}
+
+interface GangNetworkProps {
+  gangs: Gang[]
+}
+
+export function GangNetwork({ gangs }: GangNetworkProps) {
+  return (
+    <Card className="p-5">
+      <h3 className="text-sm font-semibold text-foreground mb-4">Gang Network Map</h3>
+      <div className="relative bg-[#0d1b2a] rounded-xl border border-white/5 overflow-hidden" style={{ height: 450 }}>
+        <div className="absolute inset-0 bg-grid opacity-20" />
+        {gangs.map((gang, idx) => {
+          const angle = (idx / gangs.length) * 2 * Math.PI - Math.PI / 2
+          const x = 50 + 30 * Math.cos(angle)
+          const y = 50 + 25 * Math.sin(angle)
+          const size = Math.max(50, gang.influence * 1.1)
+
+          return (
+            <motion.div
+              key={gang.id}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: idx * 0.15, type: "spring" }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
+              style={{ left: `${x}%`, top: `${y}%` }}
+            >
+              <svg className="absolute -inset-4 w-28 h-28 -z-10" viewBox="0 0 100 100">
+                <circle
+                  cx="50" cy="50" r="45"
+                  fill={`rgba(59,130,246,${0.05 + gang.influence / 500})`}
+                  stroke="rgba(59,130,246,0.1)"
+                  strokeWidth="1"
+                  className="animate-pulse-soft"
+                  style={{ animationDuration: `${2 + idx * 0.5}s` }}
+                />
+              </svg>
+              <div
+                className="rounded-2xl border-2 flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-lg"
+                style={{
+                  width: size,
+                  height: size,
+                  background: gang.status === "active"
+                    ? "linear-gradient(135deg, rgba(59,130,246,0.15), rgba(6,182,212,0.1))"
+                    : "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(244,63,94,0.1))",
+                  borderColor: gang.status === "active" ? "rgba(59,130,246,0.3)" : "rgba(245,158,11,0.3)",
+                }}
+              >
+                <span className="text-[10px] font-bold text-foreground text-center leading-tight px-1">{gang.name.split(" ")[0]}</span>
+                <span className="text-[9px] text-muted-foreground">{gang.members}m</span>
+              </div>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 w-56">
+                <div className="glass-card p-3 text-xs">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-foreground">{gang.name}</span>
+                    <Badge variant={gang.status === "active" ? "danger" : "warning"} size="sm">{gang.status}</Badge>
+                  </div>
+                  <p className="text-muted-foreground">Leader: {gang.leader}</p>
+                  <p className="text-muted-foreground">Area: {gang.area}</p>
+                  <p className="text-muted-foreground">Influence: {gang.influence}%</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {gang.crimes.map((c) => (
+                      <span key={c} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] text-muted-foreground">{c}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}

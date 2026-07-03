@@ -1,0 +1,30 @@
+"use client"
+
+import { useState, type ReactNode } from "react"
+import { Sidebar } from "./Sidebar"
+import { Header } from "./Header"
+import { CommandPalette } from "@/components/ui/command-palette"
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false)
+
+  return (
+    <div className="flex h-screen bg-[#0a0e1a]">
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Header onCmdK={() => setCmdPaletteOpen(true)} />
+        <main className="flex-1 overflow-y-auto p-6 bg-grid">
+          <div className="relative z-10">{children}</div>
+        </main>
+      </div>
+      <CommandPalette
+        open={cmdPaletteOpen}
+        onClose={() => setCmdPaletteOpen(false)}
+      />
+    </div>
+  )
+}
