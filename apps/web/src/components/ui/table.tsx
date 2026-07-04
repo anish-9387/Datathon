@@ -6,7 +6,7 @@ import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
 
 const Table = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="w-full overflow-auto">
+    <div className="w-full overflow-auto scrollbar-thin">
       <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   )
@@ -15,7 +15,7 @@ Table.displayName = "Table"
 
 const TableHeader = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn("[&_tr]:border-b border-white/5", className)} {...props} />
+    <thead ref={ref} className={cn("sticky top-0 z-10", className)} {...props} />
   )
 )
 TableHeader.displayName = "TableHeader"
@@ -32,7 +32,7 @@ const TableRow = forwardRef<HTMLTableRowElement, HTMLAttributes<HTMLTableRowElem
     <tr
       ref={ref}
       className={cn(
-        "border-b border-white/5 transition-colors hover:bg-white/[0.02]",
+        "border-b border-white/[0.03] transition-colors hover:bg-white/[0.015]",
         className
       )}
       {...props}
@@ -46,7 +46,7 @@ const TableHead = forwardRef<HTMLTableCellElement, ThHTMLAttributes<HTMLTableCel
     <th
       ref={ref}
       className={cn(
-        "h-11 px-4 text-left align-middle font-medium text-muted-foreground text-xs uppercase tracking-wider",
+        "h-11 px-4 text-left align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider bg-[#080c14]",
         className
       )}
       {...props}
@@ -57,7 +57,7 @@ TableHead.displayName = "TableHead"
 
 const TableCell = forwardRef<HTMLTableCellElement, TdHTMLAttributes<HTMLTableCellElement>>(
   ({ className, ...props }, ref) => (
-    <td ref={ref} className={cn("p-4 align-middle", className)} {...props} />
+    <td ref={ref} className={cn("p-4 align-middle text-foreground/90", className)} {...props} />
   )
 )
 TableCell.displayName = "TableCell"
@@ -74,18 +74,18 @@ function SortableHeader({ label, field, currentSort, onSort }: SortableHeaderPro
   return (
     <TableHead>
       <button
-        className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+        className="inline-flex items-center gap-1 hover:text-foreground transition-colors group"
         onClick={() => onSort(field)}
       >
         {label}
         {isActive ? (
           currentSort.direction === "asc" ? (
-            <ChevronUp className="w-3.5 h-3.5" />
+            <ChevronUp className="w-3.5 h-3.5 text-primary" />
           ) : (
-            <ChevronDown className="w-3.5 h-3.5" />
+            <ChevronDown className="w-3.5 h-3.5 text-primary" />
           )
         ) : (
-          <ChevronsUpDown className="w-3.5 h-3.5 text-muted/50" />
+          <ChevronsUpDown className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
         )}
       </button>
     </TableHead>

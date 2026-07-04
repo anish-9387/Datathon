@@ -67,8 +67,8 @@ export default function HotspotDetectionPage() {
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Hotspot Detection</h1>
-            <p className="text-sm text-muted-foreground">AI-powered crime hotspot prediction and risk assessment</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Hotspot Detection</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">AI-powered crime hotspot prediction and risk assessment</p>
           </div>
           <div className="flex items-center gap-3">
             <Select

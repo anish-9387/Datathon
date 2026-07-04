@@ -9,8 +9,8 @@ export default function AssistantPage() {
     <AppShell>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-foreground">AI Investigation Assistant</h1>
-          <p className="text-sm text-muted-foreground">Natural language interface for crime data analysis and insights</p>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">AI Investigation Assistant</h1>
+          <p className="text-sm text-muted-foreground/60 mt-1">Natural language interface for crime data analysis and insights</p>
         </motion.div>
 
         <ChatInterface />

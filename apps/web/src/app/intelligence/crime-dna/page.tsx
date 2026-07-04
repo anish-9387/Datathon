@@ -58,8 +58,8 @@ export default function CrimeDNAPage() {
     <AppShell>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-foreground">Crime DNA</h1>
-          <p className="text-sm text-muted-foreground">Visual fingerprint analysis for modus operandi matching</p>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Crime DNA</h1>
+          <p className="text-sm text-muted-foreground/60 mt-1">Visual fingerprint analysis for modus operandi matching</p>
         </motion.div>
 
         <Card className="p-5">

@@ -10,14 +10,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-[#0a0e1a]">
+    <div className="flex h-screen bg-background">
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onCmdK={() => setCmdPaletteOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-6 bg-grid">
+        <main className="flex-1 overflow-y-auto bg-dot">
           <div className="relative z-10">{children}</div>
         </main>
       </div>

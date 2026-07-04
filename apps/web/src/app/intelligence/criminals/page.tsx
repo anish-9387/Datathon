@@ -57,8 +57,8 @@ export default function CriminalsPage() {
           className="flex items-end justify-between flex-wrap gap-4"
         >
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Criminal Scoring</h1>
-            <p className="text-sm text-muted-foreground">PageRank influence and betweenness centrality on the co-offending network</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Criminal Scoring</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">PageRank influence and betweenness centrality on the co-offending network</p>
           </div>
           <div className="flex items-center gap-3">
             <Select

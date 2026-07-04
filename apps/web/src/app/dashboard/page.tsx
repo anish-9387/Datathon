@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { motion } from "framer-motion"
-import { TrendingUp, TrendingDown, Shield, Clock, BarChart3, Activity } from "lucide-react"
+import { TrendingUp, TrendingDown, Shield, Clock, BarChart3, Activity, ArrowUpRight } from "lucide-react"
 import { AppShell } from "@/components/layout/AppShell"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -56,8 +56,6 @@ interface District {
   stations: number
 }
 
-// Aggregate daily points into weekly buckets (week starts Monday) so sparse
-// single-digit daily counts render as a readable trend.
 function aggregateWeekly(data: TimelinePoint[]): TimelinePoint[] {
   const weeks = new Map<string, TimelinePoint>()
   for (const point of data) {
@@ -71,6 +69,23 @@ function aggregateWeekly(data: TimelinePoint[]): TimelinePoint[] {
     weeks.set(key, bucket)
   }
   return [...weeks.values()].sort((a, b) => a.date.localeCompare(b.date))
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06 },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const },
+  },
 }
 
 export default function DashboardPage() {
@@ -95,10 +110,10 @@ export default function DashboardPage() {
         ? Math.round(((last.solved - prev.solved) / prev.solved) * 1000) / 10
         : 0
     return [
-      { label: "Total Cases", value: s.totalCases.toLocaleString(), change: s.trend, icon: BarChart3, color: "from-primary to-blue-500" },
-      { label: "Solved", value: s.solvedCases.toLocaleString(), change: solvedChange, icon: Shield, color: "from-emerald-500 to-emerald-600" },
-      { label: "Pending", value: s.pendingCases.toLocaleString(), caption: `${s.activeInvestigations} active investigations`, icon: Clock, color: "from-amber-500 to-amber-600" },
-      { label: "Chargesheet Rate", value: `${s.chargesheetRate}%`, caption: `Avg resolution ${s.avgResolutionDays} days`, icon: Activity, color: "from-cyan-500 to-cyan-600" },
+      { label: "Total Cases", value: s.totalCases.toLocaleString(), change: s.trend, icon: BarChart3, color: "from-primary to-blue-500", gradient: "from-primary/10 to-blue-500/5" },
+      { label: "Solved", value: s.solvedCases.toLocaleString(), change: solvedChange, icon: Shield, color: "from-emerald-500 to-emerald-600", gradient: "from-emerald-500/10 to-emerald-600/5" },
+      { label: "Pending", value: s.pendingCases.toLocaleString(), caption: `${s.activeInvestigations} active`, icon: Clock, color: "from-amber-500 to-amber-600", gradient: "from-amber-500/10 to-amber-600/5" },
+      { label: "Chargesheet Rate", value: `${s.chargesheetRate}%`, caption: `${s.avgResolutionDays} days avg`, icon: Activity, color: "from-cyan-500 to-cyan-600", gradient: "from-cyan-500/10 to-cyan-600/5" },
     ] as {
       label: string
       value: string
@@ -106,25 +121,24 @@ export default function DashboardPage() {
       caption?: string
       icon: typeof BarChart3
       color: string
+      gradient: string
     }[]
   }, [stats.data])
 
   if (stats.loading) {
     return (
       <AppShell>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Intelligence Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Loading real-time data...</p>
-            </div>
+        <motion.div className="space-y-6 p-6" variants={containerVariants} initial="hidden" animate="visible">
+          <div>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Intelligence Dashboard</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Loading real-time data...</p>
           </div>
           <KPISkeleton />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="p-6"><div className="skeleton h-[300px] rounded-xl" /></Card>
-            <Card className="p-6"><div className="skeleton h-[300px] rounded-xl" /></Card>
+            <ChartSkeleton />
+            <ChartSkeleton />
           </div>
-        </div>
+        </motion.div>
       </AppShell>
     )
   }
@@ -132,10 +146,10 @@ export default function DashboardPage() {
   if (stats.error || !stats.data) {
     return (
       <AppShell>
-        <div className="space-y-6">
+        <div className="space-y-6 p-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Intelligence Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Real-time crime analytics for Karnataka Police</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Intelligence Dashboard</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Real-time crime analytics for Karnataka Police</p>
           </div>
           <ErrorCard message={stats.error || "No data returned"} onRetry={stats.refresh} />
         </div>
@@ -145,82 +159,90 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <motion.div
+        className="space-y-6 p-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants} className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Intelligence Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Real-time crime analytics for Karnataka Police</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Intelligence Dashboard</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Real-time crime analytics for Karnataka Police</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="info" size="md">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse" />
-              Live
-            </Badge>
+            <Badge variant="success" size="sm" dot>Live</Badge>
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+        >
           {kpiCards.map((kpi, idx) => (
             <motion.div
               key={kpi.label}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
+              transition={{ delay: idx * 0.08, duration: 0.4, ease: [0.16, 1, 0.3, 1] as const }}
             >
-              <Card className="p-5 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity bg-gradient-to-br from-primary to-accent-cyan" />
+              <Card variant="gradient" padding="lg" className="relative overflow-hidden group h-full">
+                <div className={cn(
+                  "absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-500",
+                  kpi.gradient
+                )} />
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{kpi.label}</span>
-                    <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center", kpi.color)}>
-                      <kpi.icon className="w-4.5 h-4.5 text-white" />
+                    <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-[0.08em]">{kpi.label}</span>
+                    <div className={cn("w-8 h-8 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-sm", kpi.color)}>
+                      <kpi.icon className="w-4 h-4 text-white" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
-                  <div className="flex items-center gap-1 mt-1.5">
+                  <div className="text-2xl font-bold text-foreground tracking-tight">{kpi.value}</div>
+                  <div className="flex items-center gap-1.5 mt-2">
                     {kpi.change !== undefined ? (
                       <>
-                        {kpi.change >= 0 ? (
-                          <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                        ) : (
-                          <TrendingDown className="w-3.5 h-3.5 text-accent-rose" />
-                        )}
-                        <span className={cn("text-xs font-medium", kpi.change >= 0 ? "text-emerald-400" : "text-accent-rose")}>
-                          {Math.abs(kpi.change)}% vs last month
+                        <span className={cn(
+                          "flex items-center gap-0.5 text-xs font-medium",
+                          kpi.change >= 0 ? "text-emerald-400" : "text-accent-rose"
+                        )}>
+                          {kpi.change >= 0 ? (
+                            <ArrowUpRight className="w-3 h-3" />
+                          ) : (
+                            <TrendingDown className="w-3 h-3" />
+                          )}
+                          {Math.abs(kpi.change)}%
                         </span>
+                        <span className="text-xs text-muted-foreground/40">vs last month</span>
                       </>
                     ) : (
-                      <span className="text-xs font-medium text-muted-foreground">{kpi.caption}</span>
+                      <span className="text-xs text-muted-foreground/50">{kpi.caption}</span>
                     )}
                   </div>
                 </div>
               </Card>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            {timeline.loading ? (
-              <ChartSkeleton />
-            ) : timeline.error ? (
-              <ErrorCard message={timeline.error} onRetry={timeline.refresh} title="Failed to load timeline" />
-            ) : (
-              <TimeSeriesChart
-                data={weeklyTimeline}
-                title="Crime Time Series"
-                subtitle="Weekly incidents and solved cases (last 12 months)"
-                height={360}
-              />
-            )}
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-            <CrimeDistribution data={stats.data.crimeDistribution} title="Crime Type Distribution" />
-          </motion.div>
-        </div>
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {timeline.loading ? (
+            <ChartSkeleton />
+          ) : timeline.error ? (
+            <ErrorCard message={timeline.error} onRetry={timeline.refresh} title="Failed to load timeline" />
+          ) : (
+            <TimeSeriesChart
+              data={weeklyTimeline}
+              title="Crime Time Series"
+              subtitle="Weekly incidents and solved cases (last 12 months)"
+              height={360}
+            />
+          )}
+          <CrimeDistribution data={stats.data.crimeDistribution} title="Crime Type Distribution" />
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-2">
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             {stations.loading ? (
               <ChartSkeleton />
             ) : stations.error ? (
@@ -228,13 +250,11 @@ export default function DashboardPage() {
             ) : (
               <StationRanking data={stations.data || []} subtitle="Top stations by caseload" />
             )}
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
-            <StatusDashboard data={stats.data.byStatus} />
-          </motion.div>
-        </div>
+          </div>
+          <StatusDashboard data={stats.data.byStatus} />
+        </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+        <motion.div variants={itemVariants}>
           {districts.loading ? (
             <ChartSkeleton />
           ) : districts.error ? (
@@ -245,7 +265,7 @@ export default function DashboardPage() {
             />
           )}
         </motion.div>
-      </div>
+      </motion.div>
     </AppShell>
   )
 }

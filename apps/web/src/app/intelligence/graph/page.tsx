@@ -65,8 +65,8 @@ export default function GraphPage() {
           className="flex items-end justify-between flex-wrap gap-4"
         >
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Criminal Relationship Graph</h1>
-            <p className="text-sm text-muted-foreground">Interactive force-directed graph of FIR entities and their relationships</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Criminal Relationship Graph</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Interactive force-directed graph of FIR entities and their relationships</p>
           </div>
           <div className="flex items-center gap-3">
             <Select

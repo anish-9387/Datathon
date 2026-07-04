@@ -63,8 +63,8 @@ export default function SimilaritySearchPage() {
     <AppShell>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-foreground">Crime Similarity Search</h1>
-          <p className="text-sm text-muted-foreground">Semantic search over FIR narratives using sentence embeddings</p>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Crime Similarity Search</h1>
+          <p className="text-sm text-muted-foreground/60 mt-1">Semantic search over FIR narratives using sentence embeddings</p>
         </motion.div>
 
         <Card className="p-5">

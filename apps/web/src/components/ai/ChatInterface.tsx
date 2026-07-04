@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Send, Bot, User, Sparkles, RefreshCw, AlertTriangle, Database } from "lucide-react"
-import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { postApi } from "@/hooks/useApi"
 
@@ -44,7 +43,7 @@ function pickColumns(rows: Record<string, unknown>[]): string[] {
 }
 
 function formatCell(key: string, value: unknown): string {
-  if (value === null || value === undefined || value === "") return "—"
+  if (value === null || value === undefined || value === "") return "\u2014"
   if (key === "date_time") {
     const d = new Date(String(value))
     if (!Number.isNaN(d.getTime())) {
@@ -65,12 +64,12 @@ function ResultTable({ rows }: { rows: Record<string, unknown>[] }) {
   if (columns.length === 0) return null
 
   return (
-    <div className="mt-3 rounded-lg border border-white/10 overflow-x-auto">
+    <div className="mt-3 rounded-lg border border-white/[0.06] overflow-x-auto">
       <table className="w-full text-xs">
         <thead>
-          <tr className="border-b border-white/10 bg-white/[0.03]">
+          <tr className="border-b border-white/[0.06] bg-white/[0.02]">
             {columns.map((col) => (
-              <th key={col} className="px-3 py-2 text-left font-medium text-muted-foreground whitespace-nowrap">
+              <th key={col} className="px-3 py-2 text-left font-medium text-muted-foreground/70 whitespace-nowrap">
                 {columnLabel(col)}
               </th>
             ))}
@@ -78,9 +77,9 @@ function ResultTable({ rows }: { rows: Record<string, unknown>[] }) {
         </thead>
         <tbody>
           {visible.map((row, idx) => (
-            <tr key={idx} className="border-b border-white/5 last:border-0">
+            <tr key={idx} className="border-b border-white/[0.03] last:border-0">
               {columns.map((col) => (
-                <td key={col} className="px-3 py-2 text-foreground whitespace-nowrap max-w-[220px] truncate">
+                <td key={col} className="px-3 py-2 text-foreground/80 whitespace-nowrap max-w-[220px] truncate">
                   {formatCell(col, row[col])}
                 </td>
               ))}
@@ -97,34 +96,34 @@ function AssistantReply({ response }: { response: AssistantResponse }) {
   return (
     <div className="space-y-3">
       {response.explanation && (
-        <p className="text-sm text-foreground leading-relaxed">{response.explanation}</p>
+        <p className="text-sm text-foreground/90 leading-relaxed">{response.explanation}</p>
       )}
       {response.sql && (
-        <div className="rounded-lg bg-black/40 border border-white/10 overflow-x-auto">
-          <div className="flex items-center gap-1.5 px-3 pt-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+        <div className="rounded-lg bg-black/30 border border-white/[0.06] overflow-x-auto">
+          <div className="flex items-center gap-1.5 px-3 pt-2 text-[10px] uppercase tracking-wider text-muted-foreground/50">
             <Database className="w-3 h-3" /> Generated SQL
           </div>
-          <pre className="px-3 py-2 text-xs text-accent-cyan font-mono whitespace-pre-wrap">{response.sql}</pre>
+          <pre className="px-3 py-2 text-xs text-accent-cyan/90 font-mono whitespace-pre-wrap">{response.sql}</pre>
         </div>
       )}
       {rows.length > 0 ? (
         <>
           <ResultTable rows={rows} />
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground/50">
             {response.rowCount ?? rows.length} row{(response.rowCount ?? rows.length) === 1 ? "" : "s"} returned
-            {rows.length > 10 ? " · showing first 10" : ""}
+            {rows.length > 10 ? " \u00B7 showing first 10" : ""}
           </p>
         </>
       ) : (
-        !response.error && <p className="text-xs text-muted-foreground">No matching records found.</p>
+        !response.error && <p className="text-xs text-muted-foreground/50">No matching records found.</p>
       )}
       {response.note && (
-        <p className="text-[11px] text-amber-400/90 bg-amber-500/5 border border-amber-500/15 rounded-lg px-3 py-2">
+        <p className="text-[11px] text-amber-400/80 bg-amber-500/5 border border-amber-500/12 rounded-lg px-3 py-2">
           {response.note}
         </p>
       )}
       {response.error && (
-        <p className="text-[11px] text-accent-rose bg-accent-rose/5 border border-accent-rose/20 rounded-lg px-3 py-2 flex items-start gap-1.5">
+        <p className="text-[11px] text-accent-rose bg-accent-rose/5 border border-accent-rose/15 rounded-lg px-3 py-2 flex items-start gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
           {response.error}
         </p>
@@ -189,47 +188,44 @@ export function ChatInterface() {
   }
 
   return (
-    <Card className="flex flex-col h-[600px]">
-      <div className="flex items-center justify-between p-4 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center">
+    <div className="flex flex-col h-[600px] rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center shadow-sm">
             <Bot className="w-4 h-4 text-white" />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">AI Investigation Assistant</p>
-            <p className="text-[11px] text-muted-foreground">Natural language to SQL over live FIR data</p>
+            <p className="text-[11px] text-muted-foreground/60">Natural language to SQL over live FIR data</p>
           </div>
         </div>
-        <Badge variant="success" size="sm">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse" />
-          Online
-        </Badge>
+        <Badge variant="success" size="sm" dot>Online</Badge>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-5 space-y-4">
         <AnimatePresence>
           {messages.map((msg) => (
             <motion.div
               key={msg.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
             >
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
                 msg.role === "user" ? "bg-primary/10" : "bg-gradient-to-br from-primary to-accent-cyan"
               }`}>
                 {msg.role === "user" ? (
-                  <User className="w-4 h-4 text-primary" />
+                  <User className="w-3.5 h-3.5 text-primary" />
                 ) : (
-                  <Bot className="w-4 h-4 text-white" />
+                  <Bot className="w-3.5 h-3.5 text-white" />
                 )}
               </div>
               <div className={`max-w-[85%] min-w-0 ${
                 msg.role === "user"
-                  ? "bg-primary/10 border border-primary/20"
+                  ? "bg-primary/8 border border-primary/15"
                   : msg.error
-                    ? "bg-accent-rose/5 border border-accent-rose/20"
-                    : "bg-white/[0.02] border border-white/5"
+                    ? "bg-accent-rose/5 border border-accent-rose/15"
+                    : "bg-white/[0.02] border border-white/[0.04]"
               } rounded-xl px-4 py-3`}>
                 {msg.response ? (
                   <AssistantReply response={msg.response} />
@@ -239,11 +235,11 @@ export function ChatInterface() {
                     <span>{msg.error}</span>
                   </div>
                 ) : (
-                  <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                  <div className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
                     {msg.content}
                   </div>
                 )}
-                <p className="text-[10px] text-muted-foreground mt-2">
+                <p className="text-[10px] text-muted-foreground/40 mt-2">
                   {msg.timestamp.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
@@ -251,11 +247,11 @@ export function ChatInterface() {
           ))}
           {isLoading && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white" />
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center">
+                <Bot className="w-3.5 h-3.5 text-white" />
               </div>
-              <div className="bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground/70">
                   <RefreshCw className="w-4 h-4 animate-spin" />
                   Translating to SQL and querying the database...
                 </div>
@@ -267,15 +263,15 @@ export function ChatInterface() {
       </div>
 
       {messages.length === 1 && (
-        <div className="px-4 pb-3">
+        <div className="px-5 pb-3">
           <div className="flex flex-wrap gap-2">
             {suggestions.map((s) => (
               <button
                 key={s}
                 onClick={() => handleSend(s)}
-                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-xs text-muted-foreground hover:text-foreground hover:bg-white/10 hover:border-primary/20 transition-all"
+                className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-xs text-muted-foreground/60 hover:text-foreground/80 hover:bg-white/[0.05] hover:border-primary/20 transition-all"
               >
-                <Sparkles className="w-3 h-3 inline mr-1 text-primary" />
+                <Sparkles className="w-3 h-3 inline mr-1 text-primary/70" />
                 {s}
               </button>
             ))}
@@ -283,24 +279,24 @@ export function ChatInterface() {
         </div>
       )}
 
-      <div className="p-4 border-t border-white/5">
+      <div className="p-4 border-t border-white/[0.04]">
         <div className="flex items-center gap-3">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend(input)}
             placeholder="Ask anything about crime data..."
-            className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-foreground placeholder:text-muted outline-none focus:border-primary/30 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-foreground placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 focus:bg-white/[0.05] transition-all"
           />
           <button
             onClick={() => handleSend(input)}
             disabled={!input.trim() || isLoading}
-            className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white hover:bg-primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
       </div>
-    </Card>
+    </div>
   )
 }

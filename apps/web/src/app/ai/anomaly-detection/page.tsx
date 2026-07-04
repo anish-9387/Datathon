@@ -83,8 +83,8 @@ export default function AnomalyDetectionPage() {
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Anomaly Detection</h1>
-            <p className="text-sm text-muted-foreground">Isolation Forest detection of unusual crime patterns and emerging threats</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Anomaly Detection</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Isolation Forest detection of unusual crime patterns and emerging threats</p>
           </div>
           <Select
             options={(districts ?? []).map((d) => ({ value: d.name, label: d.name }))}

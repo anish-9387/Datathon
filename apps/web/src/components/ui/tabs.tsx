@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, type ReactNode } from "react"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 interface TabsContextType {
@@ -22,14 +23,14 @@ function Tabs({
   const [activeTab, setActiveTab] = useState(defaultValue)
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
-      <div className={cn("space-y-4", className)}>{children}</div>
+      <div className={cn("", className)}>{children}</div>
     </TabsContext.Provider>
   )
 }
 
 function TabsList({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("inline-flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/5", className)}>
+    <div className={cn("inline-flex items-center gap-0.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.05]", className)}>
       {children}
     </div>
   )
@@ -51,14 +52,21 @@ function TabsTrigger({
     <button
       onClick={() => ctx.setActiveTab(value)}
       className={cn(
-        "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+        "relative px-4 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200",
         isActive
-          ? "bg-primary text-white shadow-lg shadow-primary/20"
+          ? "text-white"
           : "text-muted-foreground hover:text-foreground",
         className
       )}
     >
-      {children}
+      {isActive && (
+        <motion.div
+          layoutId="tabs-active"
+          className="absolute inset-0 rounded-lg bg-primary shadow-sm shadow-primary/20"
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        />
+      )}
+      <span className="relative z-10">{children}</span>
     </button>
   )
 }
@@ -75,7 +83,16 @@ function TabsContent({
   const ctx = useContext(TabsContext)
   if (!ctx) return null
   if (ctx.activeTab !== value) return null
-  return <div className={cn("animate-in", className)}>{children}</div>
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
 }
 
 export { Tabs, TabsList, TabsTrigger, TabsContent }

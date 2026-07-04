@@ -64,8 +64,8 @@ export default function RepeatMOPage() {
           className="flex items-end justify-between flex-wrap gap-4"
         >
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Repeat MO Detection</h1>
-            <p className="text-sm text-muted-foreground">Identify and track recurring modus operandi patterns</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Repeat MO Detection</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Identify and track recurring modus operandi patterns</p>
           </div>
           <div className="flex items-center gap-3">
             <Select

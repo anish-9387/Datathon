@@ -49,8 +49,8 @@ export default function MOClusteringPage() {
           className="flex items-end justify-between flex-wrap gap-4"
         >
           <div>
-            <h1 className="text-2xl font-bold text-foreground">MO Clustering</h1>
-            <p className="text-sm text-muted-foreground">Density-based modus operandi cluster analysis on MO embeddings</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">MO Clustering</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Density-based modus operandi cluster analysis on MO embeddings</p>
           </div>
           <div className="flex items-center gap-3">
             <Select

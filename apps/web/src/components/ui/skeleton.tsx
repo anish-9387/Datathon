@@ -25,7 +25,7 @@ function Skeleton({ className, variant = "rectangular", width, height }: Skeleto
 
 function CardSkeleton() {
   return (
-    <div className="glass-card p-6 space-y-4">
+    <div className="glass-card p-5 space-y-3">
       <Skeleton variant="text" className="w-1/2" />
       <Skeleton variant="text" className="w-3/4 h-8" />
       <Skeleton variant="text" className="w-1/3" />
@@ -35,16 +35,16 @@ function CardSkeleton() {
 
 function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
   return (
-    <div className="glass-card p-6 space-y-4">
-      <div className="flex gap-4 pb-4 border-b border-white/5">
+    <div className="glass-card p-5 space-y-3">
+      <div className="flex gap-4 pb-3 border-b border-white/[0.04]">
         {Array.from({ length: cols }).map((_, i) => (
-          <Skeleton key={i} className="flex-1 h-4" />
+          <Skeleton key={i} className="flex-1 h-3" />
         ))}
       </div>
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex gap-4">
           {Array.from({ length: cols }).map((_, j) => (
-            <Skeleton key={j} className="flex-1 h-4" />
+            <Skeleton key={j} className="flex-1 h-3" />
           ))}
         </div>
       ))}
@@ -52,10 +52,10 @@ function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number })
   )
 }
 
-function ChartSkeleton() {
+function ChartSkeleton({ height = 300 }: { height?: number }) {
   return (
-    <div className="glass-card p-6">
-      <Skeleton className="w-full h-[300px] rounded-xl" />
+    <div className="glass-card p-5">
+      <Skeleton className="w-full rounded-xl" height={height} />
     </div>
   )
 }

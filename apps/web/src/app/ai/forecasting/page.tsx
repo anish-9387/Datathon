@@ -142,8 +142,8 @@ export default function ForecastingPage() {
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Crime Forecasting</h1>
-            <p className="text-sm text-muted-foreground">AI-powered crime probability predictions from the XGBoost model</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Crime Forecasting</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">AI-powered crime probability predictions from the XGBoost model</p>
           </div>
           <Select
             options={districtOptions}

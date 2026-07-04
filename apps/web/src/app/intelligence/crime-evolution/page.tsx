@@ -56,8 +56,8 @@ export default function CrimeEvolutionPage() {
           className="flex items-end justify-between flex-wrap gap-4"
         >
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Crime Evolution Timeline</h1>
-            <p className="text-sm text-muted-foreground">Monthly dominant crime patterns and heinous-offence severity</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Crime Evolution Timeline</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Monthly dominant crime patterns and heinous-offence severity</p>
           </div>
           <div className="flex items-center gap-3">
             <Select

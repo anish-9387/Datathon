@@ -21,7 +21,12 @@ interface District {
   stations: number
 }
 
-const districtColors = ["#3b82f6", "#06b6d4", "#10b981", "#f59e0b", "#f43f5e"]
+const districtColors = ["#3b82f6", "#06b6d4", "#10b981", "#f59e0b", "#f43f5e", "#8b5cf6", "#ec4899"]
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
+}
 
 export default function DistrictPage() {
   const { data: districts, error, loading, refresh } = useApi<District[]>("/api/districts")
@@ -31,11 +36,7 @@ export default function DistrictPage() {
     const totalCases = districts.reduce((a, d) => a + d.cases, 0)
     const totalSolved = districts.reduce((a, d) => a + d.solved, 0)
     const totalStations = districts.reduce((a, d) => a + d.stations, 0)
-    return {
-      totalCases,
-      totalStations,
-      solveRate: totalCases > 0 ? ((totalSolved / totalCases) * 100).toFixed(1) : "0.0",
-    }
+    return { totalCases, totalStations, solveRate: totalCases > 0 ? ((totalSolved / totalCases) * 100).toFixed(1) : "0.0" }
   }, [districts])
 
   const topDistricts = useMemo(
@@ -46,16 +47,12 @@ export default function DistrictPage() {
   if (loading) {
     return (
       <AppShell>
-        <div className="space-y-6">
+        <div className="space-y-6 p-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">District Analytics</h1>
-            <p className="text-sm text-muted-foreground">Loading district data...</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">District Analytics</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Loading district data...</p>
           </div>
           <KPISkeleton />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="p-6"><div className="skeleton h-[300px] rounded-xl" /></Card>
-            <Card className="p-6"><div className="skeleton h-[300px] rounded-xl" /></Card>
-          </div>
         </div>
       </AppShell>
     )
@@ -64,10 +61,10 @@ export default function DistrictPage() {
   if (error || !districts) {
     return (
       <AppShell>
-        <div className="space-y-6">
+        <div className="space-y-6 p-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">District Analytics</h1>
-            <p className="text-sm text-muted-foreground">Crime statistics across Karnataka districts</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">District Analytics</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Crime statistics across Karnataka districts</p>
           </div>
           <ErrorCard message={error || "No data returned"} onRetry={refresh} />
         </div>
@@ -77,71 +74,54 @@ export default function DistrictPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-foreground">District Analytics</h1>
-          <p className="text-sm text-muted-foreground">Crime statistics across Karnataka districts</p>
+      <motion.div className="space-y-6 p-6" initial="hidden" animate="visible">
+        <motion.div variants={itemVariants}>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">District Analytics</h1>
+          <p className="text-sm text-muted-foreground/60 mt-1">Crime statistics across Karnataka districts</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            { label: "Total Districts", value: districts.length, icon: MapPin, color: "from-primary to-blue-500" },
-            { label: "Total Cases", value: summary?.totalCases.toLocaleString() ?? "0", icon: TrendingUp, color: "from-cyan-500 to-cyan-600" },
-            { label: "Police Stations", value: summary?.totalStations ?? 0, icon: Shield, color: "from-emerald-500 to-emerald-600" },
-            { label: "Avg Solve Rate", value: `${summary?.solveRate ?? "0.0"}%`, icon: Users, color: "from-amber-500 to-amber-600" },
+            { label: "Total Districts", value: districts.length, icon: MapPin, gradient: "from-primary/10 to-blue-500/5", color: "from-primary to-blue-500" },
+            { label: "Total Cases", value: summary?.totalCases.toLocaleString() ?? "0", icon: TrendingUp, gradient: "from-cyan-500/10 to-cyan-600/5", color: "from-cyan-500 to-cyan-600" },
+            { label: "Police Stations", value: summary?.totalStations ?? 0, icon: Shield, gradient: "from-emerald-500/10 to-emerald-600/5", color: "from-emerald-500 to-emerald-600" },
+            { label: "Avg Solve Rate", value: `${summary?.solveRate ?? "0.0"}%`, icon: Users, gradient: "from-amber-500/10 to-amber-600/5", color: "from-amber-500 to-amber-600" },
           ].map((kpi, idx) => (
-            <motion.div
-              key={kpi.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-            >
-              <Card className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{kpi.label}</span>
-                  <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center", kpi.color)}>
-                    <kpi.icon className="w-4.5 h-4.5 text-white" />
+            <motion.div key={kpi.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }}>
+              <Card variant="gradient" padding="lg" className="relative overflow-hidden group">
+                <div className={cn("absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-500", kpi.gradient)} />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-[0.08em]">{kpi.label}</span>
+                    <div className={cn("w-8 h-8 rounded-xl bg-linear-to-br flex items-center justify-center shadow-sm", kpi.color)}>
+                      <kpi.icon className="w-4 h-4 text-white" />
+                    </div>
                   </div>
+                  <div className="text-2xl font-bold text-foreground tracking-tight">{kpi.value}</div>
                 </div>
-                <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
               </Card>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Cases by District (Top 10)</h3>
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 p-5">
+            <h3 className="text-sm font-semibold text-foreground tracking-tight mb-4">Cases by District (Top 10)</h3>
             <div style={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topDistricts} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fill: "#64748b", fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                    angle={-30}
-                    textAnchor="end"
-                    height={60}
-                  />
+                  <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} interval={0} angle={-30} textAnchor="end" height={60} />
                   <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{ background: "rgba(13,27,42,0.95)", border: "1px solid rgba(27,58,92,0.6)", borderRadius: 8, fontSize: 13 }}
-                    labelStyle={{ color: "#94a3b8" }}
-                    cursor={{ fill: "rgba(255,255,255,0.02)" }}
-                  />
+                  <Tooltip contentStyle={{ background: "rgba(11,22,38,0.92)", border: "1px solid rgba(30,58,95,0.5)", borderRadius: 10, fontSize: 13 }} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
                   <Bar dataKey="cases" radius={[4, 4, 0, 0]}>
-                    {topDistricts.map((_, idx) => (
-                      <Cell key={idx} fill={districtColors[idx % districtColors.length]} />
-                    ))}
+                    {topDistricts.map((_, idx) => (<Cell key={idx} fill={districtColors[idx % districtColors.length]} />))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </Card>
-          <Card className="p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-4">District Rankings</h3>
+          </div>
+          <div className="rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 p-5">
+            <h3 className="text-sm font-semibold text-foreground tracking-tight mb-4">District Rankings</h3>
             <div className="max-h-[340px] overflow-y-auto">
               <Table>
                 <TableHeader>
@@ -158,15 +138,15 @@ export default function DistrictPage() {
                     <TableRow key={d.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground w-5">{idx + 1}.</span>
-                          <span className="font-medium">{d.name}</span>
+                          <span className="text-xs text-muted-foreground/50 w-5">{idx + 1}.</span>
+                          <span className="font-medium text-foreground/90">{d.name}</span>
                         </div>
                       </TableCell>
                       <TableCell>{d.cases}</TableCell>
                       <TableCell>{d.solved}</TableCell>
                       <TableCell>{d.stations}</TableCell>
                       <TableCell>
-                        <Badge variant={d.cases > 0 && d.solved / d.cases > 0.7 ? "success" : "warning"}>
+                        <Badge variant={d.cases > 0 && d.solved / d.cases > 0.7 ? "success" : "warning"} size="sm">
                           {d.cases > 0 ? ((d.solved / d.cases) * 100).toFixed(1) : "0.0"}%
                         </Badge>
                       </TableCell>
@@ -175,9 +155,9 @@ export default function DistrictPage() {
                 </TableBody>
               </Table>
             </div>
-          </Card>
-        </div>
-      </div>
+          </div>
+        </motion.div>
+      </motion.div>
     </AppShell>
   )
 }

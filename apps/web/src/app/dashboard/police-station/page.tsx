@@ -32,6 +32,11 @@ interface District {
   stations: number
 }
 
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
+}
+
 export default function PoliceStationPage() {
   const [district, setDistrict] = useState("")
 
@@ -48,11 +53,7 @@ export default function PoliceStationPage() {
     const totalCases = stations.reduce((a, s) => a + s.cases, 0)
     const totalSolved = stations.reduce((a, s) => a + s.solved, 0)
     const top = [...stations].sort((a, b) => b.rate - a.rate || b.cases - a.cases)[0]
-    return {
-      totalCases,
-      solveRate: totalCases > 0 ? ((totalSolved / totalCases) * 100).toFixed(1) : "0.0",
-      topPerformer: top.name.replace(/ Police Station$/i, ""),
-    }
+    return { totalCases, solveRate: totalCases > 0 ? ((totalSolved / totalCases) * 100).toFixed(1) : "0.0", topPerformer: top.name.replace(/ Police Station$/i, "") }
   }, [stations])
 
   const districtOptions = useMemo(
@@ -62,11 +63,11 @@ export default function PoliceStationPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <motion.div className="space-y-6 p-6" initial="hidden" animate="visible">
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Police Station Drill-down</h1>
-            <p className="text-sm text-muted-foreground">Performance and case metrics by station</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Police Station Drill-down</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Performance and case metrics by station</p>
           </div>
           <div className="w-full sm:w-64">
             <Select
@@ -84,51 +85,47 @@ export default function PoliceStationPage() {
           <>
             <KPISkeleton />
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-              <div className="lg:col-span-3">
-                <Card className="p-6"><div className="skeleton h-[350px] rounded-xl" /></Card>
-              </div>
-              <div className="lg:col-span-2">
-                <TableSkeleton rows={6} cols={3} />
-              </div>
+              <div className="lg:col-span-3"><div className="rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 p-5"><div className="skeleton h-[350px] rounded-xl" /></div></div>
+              <div className="lg:col-span-2"><TableSkeleton rows={6} cols={3} /></div>
             </div>
           </>
         ) : error || !stations ? (
           <ErrorCard message={error || "No data returned"} onRetry={refresh} />
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
-                { label: "Stations", value: String(stations.length), icon: Shield, color: "from-primary to-blue-500" },
-                { label: "Total Cases", value: (summary?.totalCases ?? 0).toLocaleString(), icon: TrendingUp, color: "from-cyan-500 to-cyan-600" },
-                { label: "Avg Solve Rate", value: `${summary?.solveRate ?? "0.0"}%`, icon: Star, color: "from-emerald-500 to-emerald-600" },
-                { label: "Top Performer", value: summary?.topPerformer ?? "—", icon: Users, color: "from-amber-500 to-amber-600" },
+                { label: "Stations", value: String(stations.length), icon: Shield, gradient: "from-primary/10 to-blue-500/5", color: "from-primary to-blue-500" },
+                { label: "Total Cases", value: (summary?.totalCases ?? 0).toLocaleString(), icon: TrendingUp, gradient: "from-cyan-500/10 to-cyan-600/5", color: "from-cyan-500 to-cyan-600" },
+                { label: "Avg Solve Rate", value: `${summary?.solveRate ?? "0.0"}%`, icon: Star, gradient: "from-emerald-500/10 to-emerald-600/5", color: "from-emerald-500 to-emerald-600" },
+                { label: "Top Performer", value: summary?.topPerformer ?? "\u2014", icon: Users, gradient: "from-amber-500/10 to-amber-600/5", color: "from-amber-500 to-amber-600" },
               ].map((kpi, idx) => (
-                <motion.div key={kpi.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
-                  <Card className="p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{kpi.label}</span>
-                      <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center", kpi.color)}>
-                        <kpi.icon className="w-4.5 h-4.5 text-white" />
+                <motion.div key={kpi.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }}>
+                  <Card variant="gradient" padding="lg" className="relative overflow-hidden group">
+                    <div className={cn("absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-500", kpi.gradient)} />
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-[0.08em]">{kpi.label}</span>
+                        <div className={cn("w-8 h-8 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-sm", kpi.color)}>
+                          <kpi.icon className="w-4 h-4 text-white" />
+                        </div>
                       </div>
-                    </div>
-                    <div className={cn("font-bold text-foreground truncate", kpi.value.length > 14 ? "text-lg leading-8" : "text-2xl")}>
-                      {kpi.value}
+                      <div className={cn("font-bold text-foreground tracking-tight truncate", kpi.value.length > 14 ? "text-lg" : "text-2xl")}>
+                        {kpi.value}
+                      </div>
                     </div>
                   </Card>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-5 gap-6">
               <div className="lg:col-span-3">
-                <StationRanking
-                  data={stations}
-                  subtitle={district ? `Stations in ${district}` : "Top stations by caseload"}
-                />
+                <StationRanking data={stations} subtitle={district ? `Stations in ${district}` : "Top stations by caseload"} />
               </div>
               <div className="lg:col-span-2">
-                <Card className="p-5">
-                  <h3 className="text-sm font-semibold text-foreground mb-4">Station Details</h3>
+                <div className="rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 p-5">
+                  <h3 className="text-sm font-semibold text-foreground tracking-tight mb-4">Station Details</h3>
                   <div className="max-h-[400px] overflow-y-auto">
                     <Table>
                       <TableHeader>
@@ -142,12 +139,12 @@ export default function PoliceStationPage() {
                         {(sorted as unknown as Station[]).map((s) => (
                           <TableRow key={s.id}>
                             <TableCell>
-                              <div className="font-medium">{s.name.replace(/ Police Station$/i, "")}</div>
-                              <div className="text-xs text-muted-foreground">{s.district}</div>
+                              <div className="font-medium text-foreground/90">{s.name.replace(/ Police Station$/i, "")}</div>
+                              <div className="text-xs text-muted-foreground/60">{s.district}</div>
                             </TableCell>
                             <TableCell>{s.cases}</TableCell>
                             <TableCell>
-                              <Badge variant={s.rate > 75 ? "success" : s.rate > 60 ? "warning" : "danger"}>
+                              <Badge variant={s.rate > 75 ? "success" : s.rate > 60 ? "warning" : "danger"} size="sm">
                                 {s.rate}%
                               </Badge>
                             </TableCell>
@@ -156,12 +153,12 @@ export default function PoliceStationPage() {
                       </TableBody>
                     </Table>
                   </div>
-                </Card>
+                </div>
               </div>
-            </div>
+            </motion.div>
           </>
         )}
-      </div>
+      </motion.div>
     </AppShell>
   )
 }

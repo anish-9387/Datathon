@@ -84,8 +84,8 @@ export default function FIRSummarizerPage() {
     <AppShell>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-foreground">FIR Summarizer</h1>
-          <p className="text-sm text-muted-foreground">AI-powered FIR analysis with keyword extraction and related-case lookup</p>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">FIR Summarizer</h1>
+          <p className="text-sm text-muted-foreground/60 mt-1">AI-powered FIR analysis with keyword extraction and related-case lookup</p>
         </motion.div>
 
         <Card className="p-5">

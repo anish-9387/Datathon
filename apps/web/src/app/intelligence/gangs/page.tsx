@@ -51,8 +51,8 @@ export default function GangsPage() {
           className="flex items-end justify-between flex-wrap gap-4"
         >
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Gang Detection</h1>
-            <p className="text-sm text-muted-foreground">Louvain community detection over the criminal co-offending network</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Gang Detection</h1>
+            <p className="text-sm text-muted-foreground/60 mt-1">Louvain community detection over the criminal co-offending network</p>
           </div>
           <Select
             options={[
