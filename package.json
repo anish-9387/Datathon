@@ -1,11 +1,11 @@
 {
   "scripts": {
     "db:generate": "prisma generate",
-    "db:push": "prisma db push",
+    "db:push": "prisma db push && prisma db execute --file prisma/views.sql",
     "db:seed": "tsx scripts/seed.ts",
     "db:views": "prisma db execute --file prisma/views.sql",
     "dev:web": "pnpm --filter web dev",
-    "dev:ml": "sh -c 'cd apps/ml-service && .venv/bin/uvicorn main:app --reload --port 8000'"
+    "dev:ml": "cd apps/ml-service && poetry run serve"
   },
   "prisma": {
     "seed": "tsx scripts/seed.ts"
