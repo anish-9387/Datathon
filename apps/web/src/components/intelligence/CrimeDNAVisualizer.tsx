@@ -1,29 +1,37 @@
 "use client"
 
+import { useMemo } from "react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-interface DNAMatch {
+export interface DNAMatch {
   firNumber: string
   similarity: number
   type: string
   date: string
   location: string
+  district?: string
+  status?: string
   mo: string
 }
 
 interface CrimeDNAVisualizerProps {
   matches: DNAMatch[]
   firNumber: string
+  signature?: string
 }
 
 function DNAStrand({ similarity, index }: { similarity: number; index: number }) {
-  const pairs = Array.from({ length: 12 }, (_, i) => ({
-    left: Math.random() > 0.5,
-    right: Math.random() > 0.5,
-    intensity: Math.max(0.2, similarity / 100 - i * 0.05),
-  }))
+  const pairs = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) => ({
+        left: Math.random() > 0.5,
+        right: Math.random() > 0.5,
+        intensity: Math.max(0.2, similarity / 100 - i * 0.05),
+      })),
+    [similarity]
+  )
 
   return (
     <div className="flex items-center gap-1">
@@ -52,16 +60,33 @@ function DNAStrand({ similarity, index }: { similarity: number; index: number })
   )
 }
 
-export function CrimeDNAVisualizer({ matches, firNumber }: CrimeDNAVisualizerProps) {
+export function CrimeDNAVisualizer({ matches, firNumber, signature }: CrimeDNAVisualizerProps) {
   return (
     <Card className="p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h3 className="text-sm font-semibold text-foreground">DNA Fingerprint: {firNumber}</h3>
-          <p className="text-xs text-muted-foreground">Modus operandi similarity analysis</p>
+          <p className="text-xs text-muted-foreground">Semantic modus operandi similarity (384-dim embedding)</p>
         </div>
+        {signature && (
+          <div className="flex items-center gap-0.5" title={`DNA signature ${signature}`}>
+            {signature.split("").map((ch, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scaleY: 0 }}
+                animate={{ opacity: 1, scaleY: 1 }}
+                transition={{ delay: i * 0.02 }}
+                className="w-1 h-4 rounded-sm"
+                style={{ background: `hsl(${(parseInt(ch, 16) / 16) * 360}, 70%, 55%)` }}
+              />
+            ))}
+          </div>
+        )}
       </div>
       <div className="space-y-3">
+        {matches.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground py-6">No similar cases found in the corpus.</p>
+        )}
         {matches.map((match, idx) => (
           <motion.div
             key={match.firNumber}
@@ -72,13 +97,18 @@ export function CrimeDNAVisualizer({ matches, firNumber }: CrimeDNAVisualizerPro
           >
             <DNAStrand similarity={match.similarity} index={idx} />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-medium text-foreground">{match.firNumber}</span>
                 <Badge variant={match.similarity > 85 ? "danger" : match.similarity > 75 ? "warning" : "info"} size="sm">
                   {match.similarity}%
                 </Badge>
+                {idx === 0 && <Badge variant="purple" size="sm">Top match</Badge>}
+                {match.status && <Badge variant="default" size="sm">{match.status}</Badge>}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">{match.type} · {match.location} · {match.date}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {match.type} · {match.location}
+                {match.district ? `, ${match.district}` : ""} · {match.date}
+              </p>
               <p className="text-xs text-muted mt-1 truncate">{match.mo}</p>
             </div>
             <div className="flex-shrink-0 w-16 h-16 relative">

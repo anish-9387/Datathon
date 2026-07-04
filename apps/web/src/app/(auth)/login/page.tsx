@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("admin@karnataka.police")
-  const [password, setPassword] = useState("admin123")
+  const [email, setEmail] = useState("admin@karnatakapolice.gov.in")
+  const [password, setPassword] = useState("Password@123")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -63,7 +63,7 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 label="Email Address"
-                placeholder="admin@karnataka.police"
+                placeholder="admin@karnatakapolice.gov.in"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

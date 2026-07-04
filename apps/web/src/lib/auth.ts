@@ -1,6 +1,8 @@
 import NextAuth from "next-auth"
 import type { NextAuthOptions } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import bcrypt from "bcryptjs"
+import { prisma } from "@/lib/prisma"
 
 declare module "next-auth" {
   interface User {
@@ -35,19 +37,21 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
         const { email, password } = credentials as { email: string; password: string }
-        if (email === "admin@karnataka.police" && password === "admin123") {
-          return {
-            id: "1",
-            name: "Superintendent",
-            email: "admin@karnataka.police",
-            role: "admin",
-            image: null,
-          }
+        const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
+        if (!user) return null
+        const valid = await bcrypt.compare(password, user.password)
+        if (!valid) return null
+        return {
+          id: String(user.id),
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          image: null,
         }
-        return null
       },
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
   session: { strategy: "jwt" },
   callbacks: {
     async jwt({ token, user }) {

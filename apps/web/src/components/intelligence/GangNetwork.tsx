@@ -4,30 +4,39 @@ import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-interface Gang {
+export interface Gang {
   id: string
   name: string
   members: number
-  influence: number
+  memberNames: string[]
   leader: string
   area: string
   crimes: string[]
+  cases: number
   formed: string
-  status: string
+  lastActive: string
+  status: "active" | "dormant"
+  influence: number
 }
 
 interface GangNetworkProps {
   gangs: Gang[]
 }
 
+// Radial map of the most influential detected communities (Louvain).
 export function GangNetwork({ gangs }: GangNetworkProps) {
+  const shown = gangs.slice(0, 10)
+
   return (
     <Card className="p-5">
-      <h3 className="text-sm font-semibold text-foreground mb-4">Gang Network Map</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-foreground">Gang Network Map</h3>
+        <span className="text-[11px] text-muted-foreground">Top {shown.length} by influence</span>
+      </div>
       <div className="relative bg-[#0d1b2a] rounded-xl border border-white/5 overflow-hidden" style={{ height: 450 }}>
         <div className="absolute inset-0 bg-grid opacity-20" />
-        {gangs.map((gang, idx) => {
-          const angle = (idx / gangs.length) * 2 * Math.PI - Math.PI / 2
+        {shown.map((gang, idx) => {
+          const angle = (idx / shown.length) * 2 * Math.PI - Math.PI / 2
           const x = 50 + 30 * Math.cos(angle)
           const y = 50 + 25 * Math.sin(angle)
           const size = Math.max(50, gang.influence * 1.1)
@@ -37,7 +46,7 @@ export function GangNetwork({ gangs }: GangNetworkProps) {
               key={gang.id}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: idx * 0.15, type: "spring" }}
+              transition={{ delay: idx * 0.1, type: "spring" }}
               className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
               style={{ left: `${x}%`, top: `${y}%` }}
             >
@@ -73,9 +82,11 @@ export function GangNetwork({ gangs }: GangNetworkProps) {
                   </div>
                   <p className="text-muted-foreground">Leader: {gang.leader}</p>
                   <p className="text-muted-foreground">Area: {gang.area}</p>
+                  <p className="text-muted-foreground">Linked cases: {gang.cases}</p>
                   <p className="text-muted-foreground">Influence: {gang.influence}%</p>
+                  <p className="text-muted-foreground">Last active: {gang.lastActive}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {gang.crimes.map((c) => (
+                    {gang.crimes.slice(0, 4).map((c) => (
                       <span key={c} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] text-muted-foreground">{c}</span>
                     ))}
                   </div>

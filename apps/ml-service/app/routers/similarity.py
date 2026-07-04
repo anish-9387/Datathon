@@ -29,14 +29,18 @@ async def search_similar_firs(
         query_embedding = encode_fir_text(request.query_text)
 
         fir_dicts = [f.model_dump() for f in firs]
+        candidates = [f for f in fir_dicts if str(f.get("fir_text", "")).strip()]
+
+        from app.utils import get_embedding_model
+        model = get_embedding_model()
+        corpus_embeddings = model.encode(
+            [f["fir_text"] for f in candidates],
+            normalize_embeddings=True,
+            batch_size=64,
+        ) if candidates else []
 
         results = []
-        for fir in fir_dicts:
-            fir_text = fir.get("fir_text", "")
-            if not fir_text.strip():
-                continue
-
-            fir_embedding = encode_fir_text(fir_text)
+        for fir, fir_embedding in zip(candidates, corpus_embeddings):
             similarity = float(np.dot(query_embedding, fir_embedding))
 
             if request.filters:

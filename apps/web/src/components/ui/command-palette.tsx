@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Command, LayoutDashboard, GitBranch, Network, Brain, FileText, User, LogOut, Map, TrendingUp, AlertTriangle, Search as SearchIcon, MessageSquare, BarChart3, Shield, Users } from "lucide-react"
+import { Search, Command, LayoutDashboard, GitBranch, Network, Brain, FileText, User, LogOut, Map, TrendingUp, AlertTriangle, Search as SearchIcon, MessageSquare, BarChart3, Shield, Users, MapPin } from "lucide-react"
+import { useApi } from "@/hooks/useApi"
 import { cn } from "@/lib/utils"
 
 interface CommandItem {
@@ -12,6 +13,16 @@ interface CommandItem {
   icon: React.ReactNode
   href: string
   category: string
+}
+
+interface SearchResponse {
+  query: string
+  total: number
+  results: {
+    cases: { id: number; firNumber: string; type: string; status: string; district: string }[]
+    criminals: { id: string; name: string; crimes: number; status: string }[]
+    districts: { id: number; name: string; cases: number }[]
+  }
 }
 
 const commands: CommandItem[] = [
@@ -35,11 +46,24 @@ const commands: CommandItem[] = [
 
 export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("")
+  const [debouncedQuery, setDebouncedQuery] = useState("")
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  const filtered = query.trim()
+  // Debounce the query so we don't hit /api/search on every keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 250)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  const searchUrl =
+    open && debouncedQuery.length >= 2
+      ? `/api/search?q=${encodeURIComponent(debouncedQuery)}`
+      : null
+  const { data: search, loading: searching } = useApi<SearchResponse>(searchUrl)
+
+  const navMatches = query.trim()
     ? commands.filter(
         (c) =>
           c.label.toLowerCase().includes(query.toLowerCase()) ||
@@ -47,13 +71,49 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       )
     : commands
 
+  const dataMatches: CommandItem[] = searchUrl && search
+    ? [
+        ...search.results.cases.map((c) => ({
+          id: `case-${c.id}`,
+          label: `FIR ${c.firNumber}`,
+          description: `${c.type} · ${c.status} · ${c.district}`,
+          icon: <FileText className="w-4 h-4" />,
+          href: "/dashboard",
+          category: "Cases",
+        })),
+        ...search.results.criminals.map((c) => ({
+          id: `criminal-${c.id}`,
+          label: c.name,
+          description: `${c.crimes} linked crimes · ${c.status}`,
+          icon: <User className="w-4 h-4" />,
+          href: "/intelligence/criminals",
+          category: "Criminals",
+        })),
+        ...search.results.districts.map((d) => ({
+          id: `district-${d.id}`,
+          label: d.name,
+          description: `${d.cases} cases · District analytics`,
+          icon: <MapPin className="w-4 h-4" />,
+          href: "/dashboard/district",
+          category: "Districts",
+        })),
+      ]
+    : []
+
+  const filtered = [...navMatches, ...dataMatches]
+
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50)
       setQuery("")
+      setDebouncedQuery("")
       setSelectedIndex(0)
     }
   }, [open])
+
+  useEffect(() => {
+    setSelectedIndex(0)
+  }, [debouncedQuery])
 
   const handleSelect = useCallback(
     (item: CommandItem) => {
@@ -101,15 +161,18 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
               value={query}
               onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0) }}
               onKeyDown={handleKeyDown}
-              placeholder="Search pages, tools, and data..."
+              placeholder="Search pages, cases, criminals, districts..."
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted outline-none"
             />
+            {searching && (
+              <span className="text-[11px] text-muted-foreground animate-pulse">Searching…</span>
+            )}
             <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-muted bg-white/5 rounded-md border border-white/5">
               <Command className="w-3 h-3" />K
             </kbd>
           </div>
           <div className="max-h-[60vh] overflow-y-auto p-2">
-            {filtered.length === 0 && (
+            {filtered.length === 0 && !searching && (
               <div className="py-8 text-center text-sm text-muted-foreground">
                 No results found for "{query}"
               </div>

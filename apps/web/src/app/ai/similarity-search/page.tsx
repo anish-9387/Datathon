@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Search, Filter } from "lucide-react"
+import { Search, Filter, RefreshCw, AlertTriangle } from "lucide-react"
 import { AppShell } from "@/components/layout/AppShell"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,34 +11,52 @@ import { Select } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { SimilarityResult, type SimilarityMatch } from "@/components/ai/SimilarityResult"
 import { EmptyState } from "@/components/ui/empty-state"
+import { useApi, postApi } from "@/hooks/useApi"
 
-const mockResults: SimilarityMatch[] = [
-  { id: "1", firNumber: "FIR2025-0892", similarity: 94.2, date: "2025-04-12", type: "Burglary", location: "Koramangala", act: "IPC", section: "457", description: "House break-in during daytime, forced entry through rear window, stolen electronics worth ₹2.5L" },
-  { id: "2", firNumber: "FIR2025-0765", similarity: 87.6, date: "2025-03-28", type: "Burglary", location: "Indiranagar", act: "IPC", section: "457", description: "House break-in, rear window forced open, jewelry stolen during family vacation" },
-  { id: "3", firNumber: "FIR2025-0654", similarity: 82.1, date: "2025-03-15", type: "Theft", location: "Jayanagar", act: "IPC", section: "379", description: "Unlocked balcony entry, cash and mobile phones stolen while residents were asleep" },
-  { id: "4", firNumber: "FIR2025-0543", similarity: 76.8, date: "2025-02-28", type: "Burglary", location: "Whitefield", act: "IPC", section: "454", description: "Lurking house-trespassing, rear window entry, documents and valuables stolen" },
-  { id: "5", firNumber: "FIR2025-0432", similarity: 71.3, date: "2025-02-10", type: "Burglary", location: "Malleshwaram", act: "IPC", section: "457", description: "House break-in, rear window forced open, electronics and cash stolen" },
-  { id: "6", firNumber: "FIR2025-0321", similarity: 65.8, date: "2025-01-22", type: "Theft", location: "RT Nagar", act: "IPC", section: "380", description: "Theft in dwelling house, entry through unlocked door during daytime" },
-]
+interface SimilarityResponse {
+  results: SimilarityMatch[]
+  total: number
+  corpusSize: number
+}
+
+interface District {
+  id: number
+  name: string
+}
+
+const CRIME_TYPES = ["Theft", "Robbery", "Burglary", "Assault", "Narcotics", "Cyber Crime"]
 
 export default function SimilaritySearchPage() {
+  const { data: districts } = useApi<District[]>("/api/districts")
   const [searchParams, setSearchParams] = useState({
-    act: "",
-    section: "",
     description: "",
-    location: "",
+    district: "",
     type: "",
+    topK: "10",
   })
-  const [results, setResults] = useState<SimilarityMatch[] | null>(null)
+  const [response, setResponse] = useState<SimilarityResponse | null>(null)
   const [searching, setSearching] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSearch = () => {
-    if (!searchParams.description && !searchParams.act) return
+  const handleSearch = async () => {
+    if (!searchParams.description.trim() || searching) return
     setSearching(true)
-    setTimeout(() => {
-      setResults(mockResults)
+    setError(null)
+    try {
+      const body: Record<string, unknown> = {
+        query: searchParams.description.trim(),
+        topK: parseInt(searchParams.topK, 10) || 10,
+      }
+      if (searchParams.district) body.district = searchParams.district
+      if (searchParams.type) body.crimeType = searchParams.type
+      const res = await postApi<SimilarityResponse>("/api/ai/similarity", body)
+      setResponse(res)
+    } catch (e) {
+      setResponse(null)
+      setError(e instanceof Error ? e.message : "Similarity search failed")
+    } finally {
       setSearching(false)
-    }, 1200)
+    }
   }
 
   return (
@@ -46,7 +64,7 @@ export default function SimilaritySearchPage() {
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold text-foreground">Crime Similarity Search</h1>
-          <p className="text-sm text-muted-foreground">Find similar cases using act, section, description, MO, and location</p>
+          <p className="text-sm text-muted-foreground">Semantic search over FIR narratives using sentence embeddings</p>
         </motion.div>
 
         <Card className="p-5">
@@ -60,13 +78,13 @@ export default function SimilaritySearchPage() {
                 <div className="flex-1">
                   <Input
                     label="Case Description or MO"
-                    placeholder="Describe the crime modus operandi..."
+                    placeholder='e.g. "gold chain snatching by motorcycle riders"'
                     value={searchParams.description}
                     onChange={(e) => setSearchParams({ ...searchParams, description: e.target.value })}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   />
                 </div>
-                <Button onClick={handleSearch} loading={searching}>
+                <Button onClick={handleSearch} loading={searching} disabled={!searchParams.description.trim()}>
                   <Search className="w-4 h-4" />
                   Search Similar
                 </Button>
@@ -74,33 +92,42 @@ export default function SimilaritySearchPage() {
             </TabsContent>
             <TabsContent value="advanced">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <Input label="Act (e.g., IPC)" placeholder="IPC" value={searchParams.act} onChange={(e) => setSearchParams({ ...searchParams, act: e.target.value })} />
-                <Input label="Section" placeholder="457" value={searchParams.section} onChange={(e) => setSearchParams({ ...searchParams, section: e.target.value })} />
+                <Select
+                  label="District"
+                  placeholder="All districts"
+                  options={(districts ?? []).map((d) => ({ value: d.name, label: d.name }))}
+                  value={searchParams.district}
+                  onChange={(e) => setSearchParams({ ...searchParams, district: e.target.value })}
+                />
                 <Select
                   label="Crime Type"
                   placeholder="All types"
-                  options={[
-                    { value: "theft", label: "Theft" },
-                    { value: "burglary", label: "Burglary" },
-                    { value: "assault", label: "Assault" },
-                    { value: "cybercrime", label: "Cybercrime" },
-                    { value: "fraud", label: "Fraud" },
-                    { value: "robbery", label: "Robbery" },
-                  ]}
+                  options={CRIME_TYPES.map((t) => ({ value: t, label: t }))}
                   value={searchParams.type}
                   onChange={(e) => setSearchParams({ ...searchParams, type: e.target.value })}
+                />
+                <Select
+                  label="Results"
+                  options={[
+                    { value: "5", label: "Top 5" },
+                    { value: "10", label: "Top 10" },
+                    { value: "20", label: "Top 20" },
+                  ]}
+                  value={searchParams.topK}
+                  onChange={(e) => setSearchParams({ ...searchParams, topK: e.target.value })}
                 />
               </div>
               <div className="flex items-end gap-4">
                 <div className="flex-1">
                   <Input
-                    label="Location"
-                    placeholder="e.g., Koramangala"
-                    value={searchParams.location}
-                    onChange={(e) => setSearchParams({ ...searchParams, location: e.target.value })}
+                    label="Case Description or MO"
+                    placeholder="Describe the crime modus operandi..."
+                    value={searchParams.description}
+                    onChange={(e) => setSearchParams({ ...searchParams, description: e.target.value })}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   />
                 </div>
-                <Button onClick={handleSearch} loading={searching}>
+                <Button onClick={handleSearch} loading={searching} disabled={!searchParams.description.trim()}>
                   <Filter className="w-4 h-4" />
                   Search
                 </Button>
@@ -109,15 +136,40 @@ export default function SimilaritySearchPage() {
           </Tabs>
         </Card>
 
-        {!results ? (
+        {searching ? (
+          <Card className="p-5">
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+              <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+              <p className="text-sm font-medium text-foreground">Computing semantic embeddings...</p>
+              <p className="text-xs text-muted-foreground max-w-sm">
+                The model is encoding your query and comparing it against every FIR narrative in the corpus. This can take 10-30 seconds.
+              </p>
+            </div>
+          </Card>
+        ) : error ? (
+          <Card>
+            <EmptyState
+              icon={<AlertTriangle className="w-8 h-8 text-accent-rose" />}
+              title="Search failed"
+              description={error}
+              action={{ label: "Retry", onClick: handleSearch }}
+            />
+          </Card>
+        ) : !response ? (
           <EmptyState
             icon={<Search className="w-8 h-8 text-primary" />}
             title="Search for similar cases"
-            description="Enter crime details to find matching cases from the database using AI-powered similarity analysis."
+            description="Describe a modus operandi to find semantically matching cases from the FIR database. Try: gold chain snatching by motorcycle riders."
+          />
+        ) : response.results.length === 0 ? (
+          <EmptyState
+            icon={<Search className="w-8 h-8 text-primary" />}
+            title="No matches found"
+            description="No similar cases matched your filters. Try broadening the district or crime type."
           />
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <SimilarityResult results={results} />
+            <SimilarityResult results={response.results} corpusSize={response.corpusSize} />
           </motion.div>
         )}
       </div>

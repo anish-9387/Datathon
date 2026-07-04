@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server"
 
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:5000"
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000"
+
+function mlUrl(endpoint: string) {
+  const clean = endpoint.replace(/^\/+/, "")
+  const path = clean.startsWith("api/v1/") ? clean : `api/v1/${clean}`
+  return `${ML_SERVICE_URL}/${path}`
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -11,9 +17,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await fetch(`${ML_SERVICE_URL}/${endpoint}`, {
+    const response = await fetch(mlUrl(endpoint), {
       headers: { "Content-Type": "application/json" },
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(60000),
     })
     if (!response.ok) throw new Error(`ML service error: ${response.status}`)
     const data = await response.json()
@@ -21,7 +27,7 @@ export async function GET(request: Request) {
   } catch {
     return NextResponse.json({
       error: "ML service unavailable",
-      message: "Using mock data. Start the Python ML service for live predictions.",
+      message: "Start the Python ML service (pnpm dev:ml) for live predictions.",
       mock: true,
     }, { status: 503 })
   }
@@ -37,11 +43,11 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const response = await fetch(`${ML_SERVICE_URL}/${endpoint}`, {
+    const response = await fetch(mlUrl(endpoint), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(60000),
     })
     if (!response.ok) throw new Error(`ML service error: ${response.status}`)
     const data = await response.json()
@@ -49,7 +55,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({
       error: "ML service unavailable",
-      message: "Using mock data. Start the Python ML service for live predictions.",
+      message: "Start the Python ML service (pnpm dev:ml) for live predictions.",
       mock: true,
     }, { status: 503 })
   }

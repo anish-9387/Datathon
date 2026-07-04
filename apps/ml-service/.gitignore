@@ -1,2 +1,6 @@
 __pycache__/*
 *.py[cod]
+.venv
+
+# Runtime-generated FAISS artifacts
+model_cache/faiss_*

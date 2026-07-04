@@ -3,15 +3,19 @@
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, MapPin, Clock, Network, Globe } from "lucide-react"
+import { AlertTriangle, MapPin } from "lucide-react"
 
 interface Anomaly {
   id: string
-  type: string
-  description: string
+  firNumber: string
   score: number
-  date: string
-  status: string
+  explanation: string
+  type: string | null
+  district: string | null
+  policeStation: string | null
+  date: string | null
+  description: string | null
+  status: string | null
 }
 
 interface AnomalyAlertProps {
@@ -19,20 +23,28 @@ interface AnomalyAlertProps {
   index: number
 }
 
-const typeIcons: Record<string, React.ReactNode> = {
-  Spatial: <MapPin className="w-4 h-4" />,
-  Temporal: <Clock className="w-4 h-4" />,
-  Modus: <AlertTriangle className="w-4 h-4" />,
-  Network: <Network className="w-4 h-4" />,
-  Geographic: <Globe className="w-4 h-4" />,
+const gradients = [
+  "from-rose-500 to-pink-500",
+  "from-amber-500 to-yellow-500",
+  "from-violet-500 to-purple-500",
+  "from-cyan-500 to-teal-500",
+  "from-emerald-500 to-green-500",
+]
+
+function gradientFor(label: string): string {
+  let hash = 0
+  for (let i = 0; i < label.length; i++) hash = (hash * 31 + label.charCodeAt(i)) | 0
+  return gradients[Math.abs(hash) % gradients.length]
 }
 
-const typeColors: Record<string, string> = {
-  Spatial: "from-rose-500 to-pink-500",
-  Temporal: "from-amber-500 to-yellow-500",
-  Modus: "from-violet-500 to-purple-500",
-  Network: "from-cyan-500 to-teal-500",
-  Geographic: "from-emerald-500 to-green-500",
+function statusVariant(status: string | null): "danger" | "warning" | "info" | "success" | "default" {
+  if (!status) return "default"
+  const s = status.toLowerCase()
+  if (s.includes("investigation")) return "warning"
+  if (s.includes("pending")) return "info"
+  if (s.includes("convicted") || s.includes("chargesheet")) return "success"
+  if (s.includes("acquitted")) return "danger"
+  return "default"
 }
 
 export function AnomalyAlert({ anomaly, index }: AnomalyAlertProps) {
@@ -45,21 +57,34 @@ export function AnomalyAlert({ anomaly, index }: AnomalyAlertProps) {
       <Card className="p-4 relative overflow-hidden group hover:border-accent-rose/30">
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity bg-accent-rose" />
         <div className="relative z-10 flex items-start gap-4">
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${typeColors[anomaly.type] || "from-primary to-blue-500"} flex items-center justify-center flex-shrink-0`}>
-            {typeIcons[anomaly.type] || <AlertTriangle className="w-4 h-4 text-white" />}
+          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradientFor(anomaly.type ?? "unknown")} flex items-center justify-center flex-shrink-0`}>
+            <AlertTriangle className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-medium text-foreground">{anomaly.type} Anomaly</span>
-              <Badge variant={anomaly.status === "confirmed" ? "danger" : anomaly.status === "investigating" ? "warning" : "default"} size="sm">
-                {anomaly.status}
-              </Badge>
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="text-sm font-medium text-foreground">{anomaly.type ?? "Unknown"} Anomaly</span>
+              <span className="text-xs text-muted-foreground font-mono">{anomaly.firNumber}</span>
+              {anomaly.status && (
+                <Badge variant={statusVariant(anomaly.status)} size="sm">
+                  {anomaly.status}
+                </Badge>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">{anomaly.description}</p>
-            <div className="flex items-center gap-3 mt-2 text-xs text-muted">
-              <span>{anomaly.date}</span>
-              <span>·</span>
-              <span>Score: {anomaly.score}</span>
+            <p className="text-sm text-muted-foreground">{anomaly.explanation}</p>
+            {anomaly.description && (
+              <p className="text-xs text-muted mt-1 line-clamp-2">{anomaly.description}</p>
+            )}
+            <div className="flex items-center gap-3 mt-2 text-xs text-muted flex-wrap">
+              {anomaly.date && <span>{anomaly.date}</span>}
+              {(anomaly.district || anomaly.policeStation) && (
+                <>
+                  <span>·</span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {[anomaly.policeStation, anomaly.district].filter(Boolean).join(", ")}
+                  </span>
+                </>
+              )}
             </div>
           </div>
           <div className="flex-shrink-0">

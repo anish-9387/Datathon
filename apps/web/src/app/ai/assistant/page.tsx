@@ -1,12 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { MessageSquare, Sparkles } from "lucide-react"
 import { AppShell } from "@/components/layout/AppShell"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { ChatInterface } from "@/components/ai/ChatInterface"
-import { EmptyState } from "@/components/ui/empty-state"
 
 export default function AssistantPage() {
   return (

@@ -15,58 +15,159 @@ interface Hotspot {
   trend: string
 }
 
-interface HeatMapProps {
-  hotspots: Hotspot[]
+interface DistrictStat {
+  district: string
+  cases: number
+  solved: number
 }
 
-export function HeatMap({ hotspots }: HeatMapProps) {
+interface HeatMapProps {
+  /** City-level hotspots (Bengaluru bounding box). */
+  hotspots?: Hotspot[]
+  /** District-level stats — rendered on a Karnataka-wide bounding box. */
+  districts?: DistrictStat[]
+  title?: string
+  subtitle?: string
+}
+
+// Approximate centroids for Karnataka districts (lat, lng).
+const DISTRICT_COORDS: Record<string, [number, number]> = {
+  "Bagalkote": [16.18, 75.7],
+  "Ballari": [15.15, 76.92],
+  "Belagavi": [15.85, 74.5],
+  "Bengaluru": [12.91, 77.55],
+  "Bengaluru Urban": [13.03, 77.65],
+  "Bengaluru Rural": [13.28, 77.58],
+  "Bidar": [17.91, 77.52],
+  "Chamarajanagara": [11.93, 76.94],
+  "Chikkaballapura": [13.43, 77.73],
+  "Chikkamagaluru": [13.32, 75.77],
+  "Chitradurga": [14.23, 76.4],
+  "Dakshina Kannada": [12.85, 75.2],
+  "Davanagere": [14.46, 75.92],
+  "Dharwada": [15.46, 75.01],
+  "Gadaga": [15.43, 75.63],
+  "Hassan": [13.01, 76.1],
+  "Haveri": [14.79, 75.4],
+  "Kalaburagi": [17.33, 76.83],
+  "Kodagu": [12.42, 75.74],
+  "Kolara": [13.14, 78.13],
+  "Koppala": [15.35, 76.15],
+  "Mandya": [12.52, 76.9],
+  "Mysuru": [12.3, 76.64],
+  "Raichuru": [16.21, 77.36],
+  "Ramanagara": [12.72, 77.28],
+  "Shivamogga": [13.93, 75.57],
+  "Tumakuru": [13.34, 77.1],
+  "Udupi": [13.34, 74.75],
+  "Uttara Kannada": [14.9, 74.6],
+  "Vijayapura": [16.83, 75.71],
+  "Yadgiri": [16.77, 77.14],
+}
+
+// Karnataka bounding box
+const KA_BOUNDS = { minLat: 11.5, maxLat: 18.4, minLng: 73.9, maxLng: 78.7 }
+
+interface Marker {
+  id: string
+  name: string
+  x: number
+  y: number
+  risk: number
+  detail: string
+}
+
+export function HeatMap({ hotspots, districts, title, subtitle }: HeatMapProps) {
+  const isDistrictMode = Boolean(districts && districts.length > 0)
+  // District risk is normalized 0-100 across districts; hotspot risk uses the original 0-100 city scale.
+  const [highAt, medAt] = isDistrictMode ? [70, 40] : [85, 70]
+
   const getRiskColor = (risk: number) => {
-    if (risk >= 85) return "bg-rose-500/20 border-rose-500/30 text-rose-400"
-    if (risk >= 70) return "bg-amber-500/20 border-amber-500/30 text-amber-400"
+    if (risk >= highAt) return "bg-rose-500/20 border-rose-500/30 text-rose-400"
+    if (risk >= medAt) return "bg-amber-500/20 border-amber-500/30 text-amber-400"
     return "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
+  }
+
+  let markers: Marker[] = []
+
+  if (districts && districts.length > 0) {
+    const maxCases = Math.max(...districts.map((d) => d.cases), 1)
+    const maxUnsolved = Math.max(...districts.map((d) => d.cases - d.solved), 1)
+    markers = districts
+      .filter((d) => DISTRICT_COORDS[d.district])
+      .map((d) => {
+        const [lat, lng] = DISTRICT_COORDS[d.district]
+        const x = ((lng - KA_BOUNDS.minLng) / (KA_BOUNDS.maxLng - KA_BOUNDS.minLng)) * 100
+        const y = ((KA_BOUNDS.maxLat - lat) / (KA_BOUNDS.maxLat - KA_BOUNDS.minLat)) * 100
+        const unsolved = d.cases - d.solved
+        const risk = Math.round(((unsolved / maxUnsolved) * 0.6 + (d.cases / maxCases) * 0.4) * 100)
+        return {
+          id: d.district,
+          name: d.district,
+          x: Math.max(4, Math.min(96, x)),
+          y: Math.max(6, Math.min(92, y)),
+          risk,
+          detail: `${d.cases} cases · ${unsolved} unsolved · Risk: ${risk}`,
+        }
+      })
+  } else if (hotspots) {
+    markers = hotspots.map((spot) => {
+      const x = ((spot.lng - 77.57) / (77.76 - 77.57)) * 100
+      const y = ((12.93 - spot.lat) / (12.93 - 12.97)) * 50 + 25
+      return {
+        id: spot.id,
+        name: spot.name,
+        x,
+        y: Math.max(10, Math.min(90, y)),
+        risk: spot.risk,
+        detail: `${spot.incidents} incidents · Risk: ${spot.risk}`,
+      }
+    })
   }
 
   return (
     <Card className="p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Crime Heat Map</h3>
-          <p className="text-xs text-muted-foreground">Bengaluru city hotspot overview</p>
+          <h3 className="text-sm font-semibold text-foreground">{title || "Crime Heat Map"}</h3>
+          <p className="text-xs text-muted-foreground">
+            {subtitle || (isDistrictMode ? "Karnataka district hotspot overview" : "Bengaluru city hotspot overview")}
+          </p>
         </div>
-        <Badge variant="info" size="sm">{hotspots.length} active hotspots</Badge>
+        <Badge variant="info" size="sm">
+          {markers.length} {isDistrictMode ? "districts" : "active hotspots"}
+        </Badge>
       </div>
       <div className="relative bg-[#0d1b2a] rounded-xl border border-white/5 overflow-hidden" style={{ height: 400 }}>
         <div className="absolute inset-0 bg-grid opacity-30" />
         <div className="absolute inset-0" style={{
           background: "radial-gradient(circle at 30% 40%, rgba(59,130,246,0.15) 0%, transparent 50%), radial-gradient(circle at 70% 60%, rgba(6,182,212,0.1) 0%, transparent 40%), radial-gradient(circle at 50% 50%, rgba(16,185,129,0.05) 0%, transparent 60%)"
         }} />
-        {hotspots.map((spot, idx) => {
-          const x = ((spot.lng - 77.57) / (77.76 - 77.57)) * 100
-          const y = ((12.93 - spot.lat) / (12.93 - 12.97)) * 50 + 25
-          return (
-            <motion.div
-              key={spot.id}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: idx * 0.15, type: "spring" }}
-              className="absolute"
-              style={{ left: `${x}%`, top: `${Math.max(10, Math.min(90, y))}%` }}
-            >
-              <div className="relative group cursor-pointer">
-                <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-bold", getRiskColor(spot.risk))}>
-                  {spot.risk}
-                </div>
+        {markers.map((spot, idx) => (
+          <motion.div
+            key={spot.id}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: Math.min(idx * 0.05, 1), type: "spring" }}
+            className="absolute"
+            style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
+          >
+            <div className="relative group cursor-pointer">
+              <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-bold", getRiskColor(spot.risk))}>
+                {spot.risk}
+              </div>
+              {spot.risk >= 70 && (
                 <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-accent-rose animate-pulse opacity-50" />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <div className="glass-card px-3 py-2 text-xs whitespace-nowrap">
-                    <p className="font-medium text-foreground">{spot.name}</p>
-                    <p className="text-muted-foreground">{spot.incidents} incidents · Risk: {spot.risk}</p>
-                  </div>
+              )}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                <div className="glass-card px-3 py-2 text-xs whitespace-nowrap">
+                  <p className="font-medium text-foreground">{spot.name}</p>
+                  <p className="text-muted-foreground">{spot.detail}</p>
                 </div>
               </div>
-            </motion.div>
-          )
-        })}
+            </div>
+          </motion.div>
+        ))}
         <div className="absolute bottom-4 left-4 flex items-center gap-4 text-[11px] text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-emerald-500/30" />

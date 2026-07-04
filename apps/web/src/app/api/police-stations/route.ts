@@ -1,21 +1,42 @@
 import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const district = searchParams.get("district")
+  const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "20", 10) || 20, 1), 100)
 
-  let stations = [
-    { id: "PS-001", name: "Cubbon Park", district: "Bengaluru Urban", cases: 189, solved: 145, officers: 45 },
-    { id: "PS-002", name: "Koramangala", district: "Bengaluru Urban", cases: 167, solved: 132, officers: 38 },
-    { id: "PS-003", name: "MG Road", district: "Bengaluru Urban", cases: 154, solved: 108, officers: 42 },
-    { id: "PS-004", name: "Indiranagar", district: "Bengaluru Urban", cases: 143, solved: 112, officers: 35 },
-    { id: "PS-005", name: "Jayanagar", district: "Bengaluru Urban", cases: 128, solved: 96, officers: 32 },
-    { id: "PS-006", name: "Whitefield", district: "Bengaluru Urban", cases: 115, solved: 78, officers: 28 },
-    { id: "PS-007", name: "Malleshwaram", district: "Bengaluru Urban", cases: 98, solved: 72, officers: 25 },
-    { id: "PS-008", name: "Banashankari", district: "Bengaluru Urban", cases: 87, solved: 65, officers: 22 },
-  ]
+  const rows = await prisma.$queryRaw<
+    Array<{
+      id: number
+      name: string
+      district: string | null
+      cases: number
+      solved: number
+      officers: number
+    }>
+  >`
+    SELECT u."UnitID" AS id,
+           u."UnitName" AS name,
+           d."DistrictName" AS district,
+           count(cm.*)::int AS cases,
+           count(cm.*) FILTER (WHERE cs."CaseStatusName" <> 'Under Investigation')::int AS solved,
+           (SELECT count(*)::int FROM "Employee" e WHERE e."UnitID" = u."UnitID") AS officers
+    FROM "Unit" u
+    LEFT JOIN "District" d ON d."DistrictID" = u."DistrictID"
+    LEFT JOIN "CaseMaster" cm ON cm."PoliceStationID" = u."UnitID"
+    LEFT JOIN "CaseStatusMaster" cs ON cs."CaseStatusID" = cm."CaseStatusID"
+    WHERE (${district}::text IS NULL OR d."DistrictName" ILIKE ${district})
+    GROUP BY u."UnitID", u."UnitName", d."DistrictName"
+    HAVING count(cm.*) > 0
+    ORDER BY cases DESC
+    LIMIT ${limit}
+  `
 
-  if (district) stations = stations.filter((s) => s.district === district)
-
-  return NextResponse.json(stations)
+  return NextResponse.json(
+    rows.map((r) => ({
+      ...r,
+      rate: r.cases > 0 ? Math.round((r.solved / r.cases) * 1000) / 10 : 0,
+    }))
+  )
 }

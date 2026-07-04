@@ -2,12 +2,15 @@
 
 FastAPI microservice for the Crime Intelligence platform.
 
-## Setup with Poetry
+## Setup (venv + pip — recommended)
 
 1. `cd apps/ml-service`
-2. `poetry env use 3.14` in this workspace, or any Python `3.11+` interpreter with wheels available
-3. `poetry install`
-4. Copy `.env.example` to `.env` and set `DATABASE_URL`, `MODEL_CACHE_DIR`, and any model overrides you need
+2. `python3 -m venv .venv` (Python 3.11+)
+3. `.venv/bin/pip install -r requirements.txt`
+4. Copy `.env.example` to `.env` if you need to override defaults (the defaults work for local dev)
+
+Poetry (`pyproject.toml`) is also present but its lock file may lag behind
+`requirements.txt`; prefer the venv + pip path above.
 
 ## Training
 
@@ -26,15 +29,13 @@ If you update the historical data, rerun the same command to regenerate the arti
 
 ## Run
 
-1. Start the API with `poetry run serve`.
-2. Open `http://localhost:8000/api/v1/health` to confirm it is running.
-3. Open the docs at `http://localhost:8000/api/v1/docs`.
-
-You can also run Uvicorn directly:
-
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+.venv/bin/uvicorn main:app --reload --port 8000
+# or from the repo root: pnpm dev:ml
 ```
+
+1. Open `http://localhost:8000/api/v1/health` to confirm it is running.
+2. Open the docs at `http://localhost:8000/api/v1/docs`.
 
 ## Useful endpoints
 

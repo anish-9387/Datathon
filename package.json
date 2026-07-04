@@ -1,8 +1,23 @@
 {
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:views": "prisma db execute --file prisma/views.sql",
+    "dev:web": "pnpm --filter web dev",
+    "dev:ml": "sh -c 'cd apps/ml-service && .venv/bin/uvicorn main:app --reload --port 8000'"
+  },
+  "prisma": {
+    "seed": "tsx scripts/seed.ts"
+  },
   "devDependencies": {
-    "prisma": "^5.22.0"
+    "@types/node": "^20.19.43",
+    "bcryptjs": "^3.0.3",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.0"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0"
-  }
+  },
+  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
 }

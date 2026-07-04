@@ -4,16 +4,17 @@ import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-interface Criminal {
+export interface Criminal {
   id: string
   name: string
   age: number
   crimes: number
   influence: number
+  pagerank: number
   betweenness: number
   repeat: boolean
   status: string
-  gang: string | null
+  lastIncident: string
   lastArrest: string
 }
 
@@ -48,12 +49,12 @@ export function CriminalScoreCard({ criminals }: CriminalScoreCardProps) {
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Age {c.age} · {c.crimes} crimes · {c.gang || "No gang affiliation"}
+                Age {c.age} · {c.crimes} case{c.crimes === 1 ? "" : "s"} · Last incident {c.lastIncident}
               </p>
               <div className="flex items-center gap-4 mt-2">
                 <div className="flex-1">
                   <div className="flex justify-between text-[10px] text-muted-foreground mb-0.5">
-                    <span>Influence</span>
+                    <span>Influence (PageRank)</span>
                     <span>{c.influence}%</span>
                   </div>
                   <div className="h-1 rounded-full bg-white/5 overflow-hidden">
@@ -66,8 +67,8 @@ export function CriminalScoreCard({ criminals }: CriminalScoreCardProps) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-medium text-foreground">{c.betweenness.toFixed(2)}</span>
-                  <p className="text-[10px] text-muted-foreground">Centrality</p>
+                  <span className="text-xs font-medium text-foreground">{c.betweenness.toFixed(4)}</span>
+                  <p className="text-[10px] text-muted-foreground">Betweenness</p>
                 </div>
               </div>
             </div>

@@ -49,7 +49,7 @@ async def detect_anomalies(request: AnomalyDetectRequest, firs: list[FIRInput]):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/emerging")
+@router.post("/emerging")
 async def get_emerging_patterns(firs: list[FIRInput]):
     try:
         fir_dicts = [f.model_dump() for f in firs]

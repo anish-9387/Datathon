@@ -10,6 +10,9 @@ interface Prediction {
   probability: number
   type: string
   confidence: string
+  district?: string | null
+  station?: string | null
+  explanation?: string | null
 }
 
 interface PredictionCardProps {
@@ -50,6 +53,11 @@ export function PredictionCard({ prediction, index }: PredictionCardProps) {
             <span className="text-foreground font-medium">{prediction.type}</span>
             <span className="text-muted-foreground">probability</span>
           </div>
+          {(prediction.station || prediction.district) && (
+            <p className="text-xs text-muted-foreground mt-1 truncate">
+              {[prediction.station, prediction.district].filter(Boolean).join(", ")}
+            </p>
+          )}
           <div className="mt-3 h-2 rounded-full bg-white/5 overflow-hidden">
             <motion.div
               className="h-full rounded-full"

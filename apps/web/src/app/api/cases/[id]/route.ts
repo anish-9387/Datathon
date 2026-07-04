@@ -1,23 +1,56 @@
 import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { caseSummary, caseCorpusInclude } from "@/lib/ml"
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+  const numericId = Number(id)
+  const byInternalId = Number.isInteger(numericId) && id.length < 10
+
+  const record = await prisma.caseMaster.findFirst({
+    where: byInternalId ? { CaseMasterID: numericId } : { CrimeNo: id },
+    include: {
+      ...caseCorpusInclude,
+      complainants: { include: { occupation: true } },
+      arrests: true,
+      chargesheets: true,
+      court: true,
+      gravityOffence: true,
+      caseCategory: true,
+      occurrenceTime: true,
+    },
+  })
+
+  if (!record) {
+    return NextResponse.json({ error: "Case not found" }, { status: 404 })
+  }
+
   return NextResponse.json({
-    id,
-    firNumber: `FIR2025-${id}`,
-    type: "Burglary",
-    status: "under-investigation",
-    date: "2025-04-12",
-    district: "Bengaluru Urban",
-    policeStation: "Koramangala",
-    description: `Detailed case information for ${id}`,
-    complainant: { name: "Rajesh Kumar", age: 42, contact: "9876543210" },
-    accused: null,
-    firDate: "2025-04-12T18:10:00Z",
-    lastUpdated: "2025-04-13T10:00:00Z",
-    officer: { name: "Inspector Sharma", badge: "KP-4521" },
+    ...caseSummary(record),
+    caseNo: record.CaseNo,
+    registeredDate: record.CrimeRegisteredDate.toISOString(),
+    incidentFrom: record.IncidentFromDate?.toISOString() ?? null,
+    incidentTo: record.IncidentToDate?.toISOString() ?? null,
+    gravity: record.gravityOffence?.LookupValue ?? null,
+    category: record.caseCategory?.LookupValue ?? null,
+    court: record.court?.CourtName ?? null,
+    sections: record.actSectionAssocs.map((s) => `${s.ActID} ${s.SectionID}`),
+    complainants: record.complainants.map((c) => ({
+      name: c.ComplainantName,
+      age: c.AgeYear,
+      occupation: c.occupation?.OccupationName ?? null,
+    })),
+    accusedDetails: record.accused.map((a) => ({ name: a.AccusedName, age: a.AgeYear })),
+    victimDetails: record.victims.map((v) => ({ name: v.VictimName, age: v.AgeYear })),
+    arrests: record.arrests.map((a) => ({
+      date: a.ArrestSurrenderDate?.toISOString() ?? null,
+    })),
+    chargesheets: record.chargesheets.map((c) => ({
+      date: c.csdate?.toISOString() ?? null,
+      type: c.cstype,
+    })),
   })
 }

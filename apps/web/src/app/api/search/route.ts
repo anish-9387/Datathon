@@ -1,30 +1,53 @@
 import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const q = searchParams.get("q")?.toLowerCase() || ""
+  const q = searchParams.get("q")?.trim() || ""
 
   if (!q) {
     return NextResponse.json({ error: "Missing search query" }, { status: 400 })
   }
+  const like = `%${q}%`
+
+  const [cases, criminals, districts] = await Promise.all([
+    prisma.$queryRaw<
+      Array<{ id: number; firNumber: string; type: string | null; status: string | null; district: string | null }>
+    >`
+      SELECT id, fir_no AS "firNumber", crime_type AS type, status, district
+      FROM fir
+      WHERE fir_no ILIKE ${like} OR fir_text ILIKE ${like} OR crime_type ILIKE ${like}
+      ORDER BY date_time DESC
+      LIMIT 10
+    `,
+    prisma.$queryRaw<Array<{ name: string; crimes: number }>>`
+      SELECT "AccusedName" AS name, count(*)::int AS crimes
+      FROM "Accused"
+      WHERE "AccusedName" ILIKE ${like}
+      GROUP BY "AccusedName"
+      ORDER BY crimes DESC
+      LIMIT 10
+    `,
+    prisma.$queryRaw<Array<{ id: number; name: string; cases: number }>>`
+      SELECT d."DistrictID" AS id, d."DistrictName" AS name, count(cm.*)::int AS cases
+      FROM "District" d
+      LEFT JOIN "Unit" u ON u."DistrictID" = d."DistrictID"
+      LEFT JOIN "CaseMaster" cm ON cm."PoliceStationID" = u."UnitID"
+      WHERE d."DistrictName" ILIKE ${like}
+      GROUP BY d."DistrictID", d."DistrictName"
+      LIMIT 5
+    `,
+  ])
 
   const results = {
-    cases: [
-      { id: "CASE-001", firNumber: "FIR2025-0892", type: "Burglary", status: "under-investigation", matchField: "firNumber" },
-      { id: "CASE-002", firNumber: "FIR2025-0765", type: "Burglary", status: "solved", matchField: "type" },
-    ].filter((r) => Object.values(r).some((v) => v.toString().toLowerCase().includes(q))),
-    criminals: [
-      { id: "C-001", name: "Ravi Kumar", crimes: 24, status: "active" },
-      { id: "C-002", name: "Vijay Singh", crimes: 31, status: "active" },
-    ].filter((r) => r.name.toLowerCase().includes(q)),
-    districts: [
-      { id: "D-001", name: "Bengaluru Urban", cases: 847 },
-    ].filter((r) => r.name.toLowerCase().includes(q)),
+    cases,
+    criminals: criminals.map((c, i) => ({ id: `A-${i}`, ...c, status: "known" })),
+    districts,
   }
 
   return NextResponse.json({
     query: q,
-    total: results.cases.length + results.criminals.length + results.districts.length,
+    total: cases.length + criminals.length + districts.length,
     results,
   })
 }

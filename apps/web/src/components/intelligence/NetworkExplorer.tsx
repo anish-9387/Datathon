@@ -1,19 +1,12 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, Filter } from "lucide-react"
+import { Search } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { useDebounce } from "@/hooks/useDebounce"
-
-interface GraphNode {
-  id: string
-  label: string
-  type: string
-  weight: number
-}
+import { NODE_COLORS, NODE_TYPE_LABELS, NODE_BADGE_VARIANTS, type GraphNode } from "./ForceGraph"
 
 interface NetworkExplorerProps {
   nodes: GraphNode[]
@@ -49,14 +42,16 @@ export function NetworkExplorer({ nodes, onSelectNode, selectedNodeId }: Network
         <Select
           options={[
             { value: "all", label: "All Types" },
-            { value: "criminal", label: "Criminals" },
-            { value: "associate", label: "Associates" },
-            { value: "victim", label: "Victims" },
-            { value: "officer", label: "Officers" },
+            { value: "case", label: "Cases" },
+            { value: "person", label: "Persons" },
+            { value: "location", label: "Locations" },
+            { value: "weapon", label: "Weapons" },
+            { value: "district", label: "Districts" },
+            { value: "crime_type", label: "Crime Types" },
           ]}
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="w-32"
+          className="w-36"
         />
       </div>
       <div className="space-y-1 max-h-[400px] overflow-y-auto">
@@ -70,13 +65,11 @@ export function NetworkExplorer({ nodes, onSelectNode, selectedNodeId }: Network
           >
             <div
               className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{
-                background: node.type === "criminal" ? "#f43f5e" : node.type === "associate" ? "#f59e0b" : node.type === "victim" ? "#10b981" : "#3b82f6",
-              }}
+              style={{ background: NODE_COLORS[node.type] || "#64748b" }}
             />
             <span className="flex-1 text-left truncate">{node.label}</span>
-            <Badge variant={node.type === "criminal" ? "danger" : node.type === "associate" ? "warning" : node.type === "victim" ? "success" : "info"} size="sm">
-              {node.type}
+            <Badge variant={NODE_BADGE_VARIANTS[node.type] || "default"} size="sm">
+              {NODE_TYPE_LABELS[node.type] || node.type}
             </Badge>
           </button>
         ))}

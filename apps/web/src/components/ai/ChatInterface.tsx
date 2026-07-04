@@ -2,31 +2,135 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Send, Bot, User, Sparkles, RefreshCw } from "lucide-react"
+import { Send, Bot, User, Sparkles, RefreshCw, AlertTriangle, Database } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { postApi } from "@/hooks/useApi"
+
+interface AssistantResponse {
+  sql?: string
+  explanation?: string
+  rows?: Record<string, unknown>[]
+  rowCount?: number
+  note?: string
+  error?: string
+}
 
 interface Message {
   id: string
   role: "user" | "assistant"
-  content: string
+  content?: string
+  response?: AssistantResponse
+  error?: string
   timestamp: Date
 }
 
 const suggestions = [
-  "Show me crime trends in Koramangala this month",
-  "Analyze FIR #2025-0892 for similar patterns",
-  "What are the top 5 hotspots in Bengaluru today?",
-  "Compare burglary rates between Indiranagar and Whitefield",
-  "Predict crime risk for upcoming festival season",
+  "show robbery cases in Bengaluru",
+  "theft cases after 9 pm",
+  "recent murder cases",
+  "top 10 cases with knife",
 ]
 
-const mockResponses: Record<string, string> = {
-  "show": "Based on the data analysis:\n\n**Koramangala Crime Trends (This Month)**\n- Total incidents: 47\n- Solved cases: 34 (72.3% solve rate)\n- Most common crime: Theft (18 cases)\n- Trending up: Cybercrime (+15% vs last month)\n- Peak hours: 6 PM - 10 PM\n\n![chart] A time series chart shows daily incidents with a slight upward trend in the last week.",
-  "analyze": "**DNA Analysis Results for FIR #2025-0892**\n\n**Top Match:** FIR2025-0765 - 87.6% similarity\n- Same MO: Forced entry through rear window\n- Same target: Electronics\n- Different location: Indiranagar\n\n**Pattern Detection:**\n- This matches a known burglary ring operating in South Bengaluru\n- 4 other cases with >70% similarity found\n- Recommend cross-referencing with suspects from previous arrests",
-  "hotspot": "**Today's Top 5 Hotspots:**\n\n1. **Koramangala** - Risk: 92 (Critical)\n   - 12 incidents in past 48 hours\n   - Predominant: Theft & Burglary\n\n2. **MG Road** - Risk: 87 (High)\n   - Increase in cybercrime reports\n\n3. **Indiranagar** - Risk: 78 (High)\n   - Vehicle theft hotspot\n\n4. **Whitefield** - Risk: 74 (Elevated)\n   - Nighttime burglary cluster\n\n5. **Jayanagar** - Risk: 65 (Moderate)\n   - Stable, routine patrols recommended",
-  "compare": "**Burglary Rate Comparison: Indiranagar vs Whitefield**\n\n| Metric | Indiranagar | Whitefield |\n|--------|------------|-----------|\n| Total cases | 143 | 115 |\n| Solved | 112 (78.3%) | 78 (67.8%) |\n| Avg. per month | 11.9 | 9.6 |\n| Peak month | March (18) | January (14) |\n\n**Insight:** Whitefield shows a lower solve rate despite fewer cases, suggesting resource allocation may need review.",
-  "predict": "**Festival Season Crime Forecast**\n\n**High Risk Period:** Oct 15 - Nov 15\n**Predicted Increase:** +23% vs monthly average\n\n**Top Predicted Crimes:**\n1. Theft - 78% probability\n2. Burglary - 65% probability\n3. Cybercrime - 52% probability\n\n**Recommended Actions:**\n- Increase patrol density in commercial areas\n- Deploy cybercrime awareness campaigns\n- Set up checkpoints at major junctions",
+const PREFERRED_COLUMNS = ["fir_no", "crime_type", "district", "police_station", "date_time", "status", "weapon"]
+const HIDDEN_COLUMNS = ["id", "fir_text", "latitude", "longitude", "crime_group"]
+
+function pickColumns(rows: Record<string, unknown>[]): string[] {
+  if (rows.length === 0) return []
+  const keys = Object.keys(rows[0])
+  const preferred = PREFERRED_COLUMNS.filter((k) => keys.includes(k))
+  const rest = keys.filter((k) => !preferred.includes(k) && !HIDDEN_COLUMNS.includes(k))
+  return [...preferred, ...rest].slice(0, 6)
+}
+
+function formatCell(key: string, value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—"
+  if (key === "date_time") {
+    const d = new Date(String(value))
+    if (!Number.isNaN(d.getTime())) {
+      return d.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+    }
+  }
+  const s = String(value)
+  return s.length > 60 ? `${s.slice(0, 57)}...` : s
+}
+
+function columnLabel(key: string): string {
+  return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+function ResultTable({ rows }: { rows: Record<string, unknown>[] }) {
+  const columns = pickColumns(rows)
+  const visible = rows.slice(0, 10)
+  if (columns.length === 0) return null
+
+  return (
+    <div className="mt-3 rounded-lg border border-white/10 overflow-x-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-white/10 bg-white/[0.03]">
+            {columns.map((col) => (
+              <th key={col} className="px-3 py-2 text-left font-medium text-muted-foreground whitespace-nowrap">
+                {columnLabel(col)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {visible.map((row, idx) => (
+            <tr key={idx} className="border-b border-white/5 last:border-0">
+              {columns.map((col) => (
+                <td key={col} className="px-3 py-2 text-foreground whitespace-nowrap max-w-[220px] truncate">
+                  {formatCell(col, row[col])}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function AssistantReply({ response }: { response: AssistantResponse }) {
+  const rows = response.rows ?? []
+  return (
+    <div className="space-y-3">
+      {response.explanation && (
+        <p className="text-sm text-foreground leading-relaxed">{response.explanation}</p>
+      )}
+      {response.sql && (
+        <div className="rounded-lg bg-black/40 border border-white/10 overflow-x-auto">
+          <div className="flex items-center gap-1.5 px-3 pt-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+            <Database className="w-3 h-3" /> Generated SQL
+          </div>
+          <pre className="px-3 py-2 text-xs text-accent-cyan font-mono whitespace-pre-wrap">{response.sql}</pre>
+        </div>
+      )}
+      {rows.length > 0 ? (
+        <>
+          <ResultTable rows={rows} />
+          <p className="text-[11px] text-muted-foreground">
+            {response.rowCount ?? rows.length} row{(response.rowCount ?? rows.length) === 1 ? "" : "s"} returned
+            {rows.length > 10 ? " · showing first 10" : ""}
+          </p>
+        </>
+      ) : (
+        !response.error && <p className="text-xs text-muted-foreground">No matching records found.</p>
+      )}
+      {response.note && (
+        <p className="text-[11px] text-amber-400/90 bg-amber-500/5 border border-amber-500/15 rounded-lg px-3 py-2">
+          {response.note}
+        </p>
+      )}
+      {response.error && (
+        <p className="text-[11px] text-accent-rose bg-accent-rose/5 border border-accent-rose/20 rounded-lg px-3 py-2 flex items-start gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+          {response.error}
+        </p>
+      )}
+    </div>
+  )
 }
 
 export function ChatInterface() {
@@ -34,7 +138,8 @@ export function ChatInterface() {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello, I'm your AI Investigation Assistant. I can help you analyze crime data, find patterns, and generate insights. Try one of the suggested queries below or ask your own question.",
+      content:
+        "Hello, I'm your AI Investigation Assistant. Ask me a question in plain English and I'll translate it to SQL, run it against the FIR database, and show you the results. Try one of the suggested queries below.",
       timestamp: new Date(),
     },
   ])
@@ -44,7 +149,7 @@ export function ChatInterface() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+  }, [messages, isLoading])
 
   const handleSend = async (content: string) => {
     if (!content.trim() || isLoading) return
@@ -60,27 +165,27 @@ export function ChatInterface() {
     setInput("")
     setIsLoading(true)
 
-    await new Promise((resolve) => setTimeout(resolve, 1200 + Math.random() * 800))
-
-    const lower = content.toLowerCase()
-    let response = "I've analyzed your query. Based on the available crime data, here's what I found:\n\nThis is a complex query that requires deeper analysis. I recommend narrowing down by location, time period, or crime type for more specific insights."
-
-    for (const [key, value] of Object.entries(mockResponses)) {
-      if (lower.includes(key)) {
-        response = value
-        break
-      }
+    try {
+      const response = await postApi<AssistantResponse>("/api/ai/assistant", {
+        query: content.trim(),
+      })
+      setMessages((prev) => [
+        ...prev,
+        { id: `${Date.now()}-a`, role: "assistant", response, timestamp: new Date() },
+      ])
+    } catch (e) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}-e`,
+          role: "assistant",
+          error: e instanceof Error ? e.message : "Something went wrong while querying the database.",
+          timestamp: new Date(),
+        },
+      ])
+    } finally {
+      setIsLoading(false)
     }
-
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: response,
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, assistantMessage])
-    setIsLoading(false)
   }
 
   return (
@@ -92,7 +197,7 @@ export function ChatInterface() {
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">AI Investigation Assistant</p>
-            <p className="text-[11px] text-muted-foreground">Powered by Crime Intelligence ML</p>
+            <p className="text-[11px] text-muted-foreground">Natural language to SQL over live FIR data</p>
           </div>
         </div>
         <Badge variant="success" size="sm">
@@ -119,10 +224,25 @@ export function ChatInterface() {
                   <Bot className="w-4 h-4 text-white" />
                 )}
               </div>
-              <div className={`max-w-[80%] ${msg.role === "user" ? "bg-primary/10 border border-primary/20" : "bg-white/[0.02] border border-white/5"} rounded-xl px-4 py-3`}>
-                <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                  {msg.content}
-                </div>
+              <div className={`max-w-[85%] min-w-0 ${
+                msg.role === "user"
+                  ? "bg-primary/10 border border-primary/20"
+                  : msg.error
+                    ? "bg-accent-rose/5 border border-accent-rose/20"
+                    : "bg-white/[0.02] border border-white/5"
+              } rounded-xl px-4 py-3`}>
+                {msg.response ? (
+                  <AssistantReply response={msg.response} />
+                ) : msg.error ? (
+                  <div className="flex items-start gap-2 text-sm text-accent-rose">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{msg.error}</span>
+                  </div>
+                ) : (
+                  <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                    {msg.content}
+                  </div>
+                )}
                 <p className="text-[10px] text-muted-foreground mt-2">
                   {msg.timestamp.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                 </p>
@@ -137,7 +257,7 @@ export function ChatInterface() {
               <div className="bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  Analyzing crime data...
+                  Translating to SQL and querying the database...
                 </div>
               </div>
             </motion.div>

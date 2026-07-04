@@ -4,14 +4,18 @@ import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-interface RepeatMO {
+export interface RepeatMO {
   id: string
   pattern: string
   frequency: number
   similarity: number
   locations: string[]
+  districts: string[]
+  crimeTypes: string[]
+  firstIncident: string
   lastIncident: string
-  risk: string
+  risk: "critical" | "high" | "medium"
+  firNumbers: string[]
 }
 
 interface MOSimilarityMatrixProps {
@@ -23,6 +27,9 @@ export function MOSimilarityMatrix({ data }: MOSimilarityMatrixProps) {
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-foreground mb-4">Repeat MO Patterns</h3>
       <div className="space-y-3">
+        {data.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground py-6">No repeat patterns detected with the current filters.</p>
+        )}
         {data.map((mo, idx) => (
           <motion.div
             key={mo.id}
@@ -33,7 +40,7 @@ export function MOSimilarityMatrix({ data }: MOSimilarityMatrixProps) {
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-foreground">{mo.pattern}</span>
                   <Badge
                     variant={mo.risk === "critical" ? "danger" : mo.risk === "high" ? "warning" : "info"}
@@ -42,7 +49,9 @@ export function MOSimilarityMatrix({ data }: MOSimilarityMatrixProps) {
                     {mo.risk}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">ID: {mo.id} · Last: {mo.lastIncident}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {mo.id} · {mo.firstIncident} → {mo.lastIncident} · {mo.districts.join(", ")}
+                </p>
               </div>
               <div className="flex items-center gap-4 flex-shrink-0">
                 <div className="text-right">
@@ -75,6 +84,12 @@ export function MOSimilarityMatrix({ data }: MOSimilarityMatrixProps) {
                 </span>
               ))}
             </div>
+            {mo.firNumbers.length > 0 && (
+              <p className="text-[11px] text-muted mt-2 truncate">
+                FIRs: {mo.firNumbers.slice(0, 4).join(", ")}
+                {mo.firNumbers.length > 4 ? ` +${mo.firNumbers.length - 4} more` : ""}
+              </p>
+            )}
           </motion.div>
         ))}
       </div>

@@ -1,29 +1,44 @@
 "use client"
 
+import { useMemo } from "react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-interface Cluster {
+export interface MOCluster {
   id: number
-  name: string
-  size: number
-  avgSimilarity: number
   pattern: string
-  color: string
-  trend: string
+  size: number
+  confidence: number
+  crimeTypes: string[]
+  locations: string[]
+  districts: string[]
+  firstIncident: string
+  lastIncident: string
+}
+
+export const CLUSTER_COLORS = ["#3b82f6", "#f43f5e", "#f59e0b", "#10b981", "#06b6d4", "#8b5cf6", "#ec4899", "#14b8a6", "#eab308", "#6366f1"]
+
+export function clusterColor(index: number) {
+  return CLUSTER_COLORS[index % CLUSTER_COLORS.length]
 }
 
 interface ClusterScatterProps {
-  clusters: Cluster[]
+  clusters: MOCluster[]
 }
 
 export function ClusterScatter({ clusters }: ClusterScatterProps) {
-  const positions = clusters.map((_, i) => {
-    const angle = (i / clusters.length) * 2 * Math.PI
-    const r = 25 + Math.random() * 15
-    return { x: 50 + r * Math.cos(angle), y: 50 + r * Math.sin(angle) }
-  })
+  const positions = useMemo(
+    () =>
+      clusters.map((_, i) => {
+        const angle = (i / Math.max(clusters.length, 1)) * 2 * Math.PI
+        const r = 25 + Math.random() * 15
+        return { x: 50 + r * Math.cos(angle), y: 50 + r * Math.sin(angle) }
+      }),
+    [clusters]
+  )
+
+  const maxSize = Math.max(...clusters.map((c) => c.size), 1)
 
   return (
     <Card className="p-5">
@@ -53,13 +68,14 @@ export function ClusterScatter({ clusters }: ClusterScatterProps) {
           )}
         </svg>
         {clusters.map((cluster, i) => {
-          const size = Math.max(40, cluster.size * 3)
+          const size = Math.max(40, (cluster.size / maxSize) * 90)
+          const color = clusterColor(i)
           return (
             <motion.div
               key={cluster.id}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: i * 0.15, type: "spring" }}
+              transition={{ delay: i * 0.1, type: "spring" }}
               className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
               style={{ left: `${positions[i].x}%`, top: `${positions[i].y}%` }}
             >
@@ -68,29 +84,37 @@ export function ClusterScatter({ clusters }: ClusterScatterProps) {
                 style={{
                   width: size,
                   height: size,
-                  background: `${cluster.color}15`,
-                  borderColor: `${cluster.color}40`,
+                  background: `${color}15`,
+                  borderColor: `${color}40`,
                 }}
               >
-                <span className="text-xs font-bold" style={{ color: cluster.color }}>
+                <span className="text-xs font-bold" style={{ color }}>
                   {cluster.size}
                 </span>
               </div>
               <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 w-64">
                 <div className="glass-card p-3 text-xs">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-foreground">{cluster.name}</span>
-                    <Badge variant={cluster.trend === "rapid" ? "danger" : cluster.trend === "increasing" ? "warning" : "default"} size="sm">
-                      {cluster.trend}
+                    <span className="font-medium text-foreground">{cluster.pattern}</span>
+                    <Badge variant={cluster.confidence >= 75 ? "success" : cluster.confidence >= 50 ? "info" : "warning"} size="sm">
+                      {cluster.confidence}%
                     </Badge>
                   </div>
-                  <p className="text-muted-foreground">{cluster.pattern}</p>
-                  <p className="text-muted mt-1">{cluster.avgSimilarity}% avg similarity</p>
+                  <p className="text-muted-foreground">{cluster.districts.join(", ")}</p>
+                  <p className="text-muted-foreground">{cluster.locations.slice(0, 3).join(", ")}</p>
+                  <p className="text-muted mt-1">
+                    {cluster.size} incidents · {cluster.firstIncident} → {cluster.lastIncident}
+                  </p>
                 </div>
               </div>
             </motion.div>
           )
         })}
+        {clusters.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">No clusters detected with the current filters</p>
+          </div>
+        )}
       </div>
     </Card>
   )

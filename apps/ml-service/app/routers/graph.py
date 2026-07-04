@@ -175,26 +175,53 @@ async def detect_gangs(request: CriminalNetworkRequest, firs: list[FIRInput]):
                 modularity_score=0.0,
             )
 
-        person_nodes = [n for n, d in G.nodes(data=True) if d.get("type") == "person"]
+        # Project the bipartite person-case graph onto persons: two persons are
+        # linked if they are co-accused in one FIR (strong), or appear in FIRs
+        # sharing a location or weapon (weak). An induced subgraph on person
+        # nodes would have no edges at all, since persons only touch case nodes.
+        subG = nx.Graph()
+        persons_by_location: dict[str, set[str]] = {}
+        persons_by_weapon: dict[str, set[str]] = {}
 
-        if len(person_nodes) < 3:
-            communities = []
-            remaining = list(G.nodes())
-            if remaining:
-                communities.append({
-                    "gang_id": 0,
-                    "members": [{"node_id": n, "label": G.nodes[n].get("label", n)} for n in remaining],
-                    "size": len(remaining),
-                    "central_member": remaining[0],
-                })
+        def _person_ids(fir: dict) -> list[str]:
+            names = str(fir.get("accused_name", "")).strip()
+            if not names:
+                return []
+            return [
+                f"accused_{n.strip()}"
+                for n in names.replace("/", ",").split(",")
+                if n.strip()
+            ]
 
+        for fir in fir_dicts:
+            ids = _person_ids(fir)
+            for pid in ids:
+                label = pid.removeprefix("accused_")
+                subG.add_node(pid, label=label, type="person")
+            for i in range(len(ids)):
+                for j in range(i + 1, len(ids)):
+                    w = subG.get_edge_data(ids[i], ids[j], {}).get("weight", 0)
+                    subG.add_edge(ids[i], ids[j], weight=w + 3.0)
+            loc = str(fir.get("location", "")).strip()
+            wp = str(fir.get("weapon", "")).strip()
+            if loc:
+                persons_by_location.setdefault(loc, set()).update(ids)
+            if wp and wp != "Unknown":
+                persons_by_weapon.setdefault(wp, set()).update(ids)
+
+        for group in list(persons_by_location.values()) + list(persons_by_weapon.values()):
+            members = sorted(group)
+            for i in range(len(members)):
+                for j in range(i + 1, len(members)):
+                    w = subG.get_edge_data(members[i], members[j], {}).get("weight", 0)
+                    subG.add_edge(members[i], members[j], weight=w + 1.0)
+
+        if subG.number_of_nodes() < 3 or subG.number_of_edges() == 0:
             return GangDetectionResponse(
-                communities=communities,
-                total_gangs=len(communities),
+                communities=[],
+                total_gangs=0,
                 modularity_score=0.0,
             )
-
-        subG = G.subgraph(person_nodes)
 
         try:
             from networkx.algorithms.community import louvain_communities
@@ -245,7 +272,7 @@ async def detect_gangs(request: CriminalNetworkRequest, firs: list[FIRInput]):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/influence", response_model=InfluenceResponse)
+@router.post("/influence", response_model=InfluenceResponse)
 async def get_influence_scores(firs: list[FIRInput]):
     try:
         fir_dicts = [f.model_dump() for f in firs]
@@ -284,7 +311,7 @@ async def get_influence_scores(firs: list[FIRInput]):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/centrality")
+@router.post("/centrality")
 async def get_centrality_scores(firs: list[FIRInput]):
     try:
         fir_dicts = [f.model_dump() for f in firs]

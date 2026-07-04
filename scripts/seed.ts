@@ -1,4 +1,5 @@
 import { PrismaClient, Role } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -647,7 +648,7 @@ const USER_NAMES = [
   { name: "Priya Sharma", email: "analyst@karnatakapolice.gov.in", role: Role.ANALYST },
 ];
 
-const PASSWORD = "$2a$12$LJ3m4ys3Lk0TSwHnbfOMiOXPm1Qlq5D8xG8yY5xV5f5d5i5j5k5l5"; // "Password@123"
+const PASSWORD = bcrypt.hashSync("Password@123", 10);
 
 // ─────────────────────────── HELPERS ───────────────────────────
 
@@ -898,13 +899,15 @@ async function main() {
 
   // ── 12. Users ──
   console.log("Creating users...");
+  const usedEmployeeIds = new Set<number>();
   for (const u of USER_NAMES) {
     let empId: number | undefined;
-    if (u.role === Role.SUPER_ADMIN || u.role === Role.SCRB_ANALYST) {
-      // assign first employee
-      empId = employees[0]?.id;
-    } else {
-      empId = pick(employees).id;
+    for (const candidate of employees) {
+      if (!usedEmployeeIds.has(candidate.id)) {
+        empId = candidate.id;
+        usedEmployeeIds.add(candidate.id);
+        break;
+      }
     }
     await prisma.user.create({
       data: {
