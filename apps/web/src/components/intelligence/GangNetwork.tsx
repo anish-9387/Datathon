@@ -33,7 +33,7 @@ export function GangNetwork({ gangs }: GangNetworkProps) {
         <h3 className="text-sm font-semibold text-foreground">Gang Network Map</h3>
         <span className="text-[11px] text-muted-foreground">Top {shown.length} by influence</span>
       </div>
-      <div className="relative bg-[#0d1b2a] rounded-xl border border-white/5 overflow-hidden" style={{ height: 450 }}>
+      <div className="relative bg-[#E7DDD1] rounded-xl border border-card-border overflow-hidden" style={{ height: 450 }}>
         <div className="absolute inset-0 bg-grid opacity-20" />
         {shown.map((gang, idx) => {
           const angle = (idx / shown.length) * 2 * Math.PI - Math.PI / 2

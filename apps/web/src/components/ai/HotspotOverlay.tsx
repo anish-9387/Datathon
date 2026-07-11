@@ -62,7 +62,7 @@ export function HotspotOverlay({ predicted, historical, modelName }: HotspotOver
           {predicted.length} predicted zones · {historical.length} historical clusters
         </Badge>
       </div>
-      <div className="relative bg-[#0d1b2a] rounded-xl border border-white/5 overflow-hidden" style={{ height: 400 }}>
+      <div className="relative bg-[#E7DDD1] rounded-xl border border-card-border overflow-hidden" style={{ height: 400 }}>
         <div className="absolute inset-0 bg-grid opacity-20" />
         {predicted.map((spot, idx) => {
           const size = 22 + (spot.incidents / maxPredIncidents) * 34

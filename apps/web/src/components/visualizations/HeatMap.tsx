@@ -83,9 +83,9 @@ export function HeatMap({ hotspots, districts, title, subtitle }: HeatMapProps) 
   const [highAt, medAt] = isDistrictMode ? [70, 40] : [85, 70]
 
   const getRiskColor = (risk: number) => {
-    if (risk >= highAt) return "bg-rose-500/20 border-rose-500/30 text-rose-400"
-    if (risk >= medAt) return "bg-amber-500/20 border-amber-500/30 text-amber-400"
-    return "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
+    if (risk >= highAt) return "bg-[#C0392B]/15 border-[#C0392B]/40 text-[#922B21]"
+    if (risk >= medAt) return "bg-[#E8A33A]/15 border-[#E8A33A]/40 text-[#9C6B1E]"
+    return "bg-[#2D8B55]/15 border-[#2D8B55]/40 text-[#1E6B3A]"
   }
 
   let markers: Marker[] = []
@@ -138,10 +138,13 @@ export function HeatMap({ hotspots, districts, title, subtitle }: HeatMapProps) 
           {markers.length} {isDistrictMode ? "districts" : "active hotspots"}
         </Badge>
       </div>
-      <div className="relative bg-[#0d1b2a] rounded-xl border border-white/5 overflow-hidden" style={{ height: 400 }}>
-        <div className="absolute inset-0 bg-grid opacity-30" />
+      <div className="relative bg-[#FBF6EE] rounded-xl border border-card-border overflow-hidden" style={{ height: 400 }}>
         <div className="absolute inset-0" style={{
-          background: "radial-gradient(circle at 30% 40%, rgba(59,130,246,0.15) 0%, transparent 50%), radial-gradient(circle at 70% 60%, rgba(6,182,212,0.1) 0%, transparent 40%), radial-gradient(circle at 50% 50%, rgba(16,185,129,0.05) 0%, transparent 60%)"
+          backgroundImage: "linear-gradient(rgba(123,36,28,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(123,36,28,0.04) 1px, transparent 1px)",
+          backgroundSize: "40px 40px"
+        }} />
+        <div className="absolute inset-0" style={{
+          background: "radial-gradient(ellipse at 40% 45%, rgba(123,36,28,0.06) 0%, transparent 55%), radial-gradient(ellipse at 65% 55%, rgba(198,93,46,0.04) 0%, transparent 45%)"
         }} />
         {markers.map((spot, idx) => (
           <motion.div
@@ -153,14 +156,14 @@ export function HeatMap({ hotspots, districts, title, subtitle }: HeatMapProps) 
             style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
           >
             <div className="relative group cursor-pointer">
-              <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-bold", getRiskColor(spot.risk))}>
+              <div className={cn("w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-bold shadow-sm", getRiskColor(spot.risk))}>
                 {spot.risk}
               </div>
               {spot.risk >= 70 && (
                 <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-accent-rose animate-pulse opacity-50" />
               )}
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                <div className="glass-card px-3 py-2 text-xs whitespace-nowrap">
+                <div className="bg-card border border-card-border rounded-xl px-3 py-2 text-xs whitespace-nowrap shadow-lg">
                   <p className="font-medium text-foreground">{spot.name}</p>
                   <p className="text-muted-foreground">{spot.detail}</p>
                 </div>
@@ -170,15 +173,15 @@ export function HeatMap({ hotspots, districts, title, subtitle }: HeatMapProps) 
         ))}
         <div className="absolute bottom-4 left-4 flex items-center gap-4 text-[11px] text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-emerald-500/30" />
+            <div className="w-3 h-3 rounded-full bg-[#2D8B55]/30" />
             <span>Low</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-amber-500/30" />
+            <div className="w-3 h-3 rounded-full bg-[#E8A33A]/30" />
             <span>Medium</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-rose-500/30" />
+            <div className="w-3 h-3 rounded-full bg-[#C0392B]/30" />
             <span>High</span>
           </div>
         </div>

@@ -32,7 +32,7 @@ const TableRow = forwardRef<HTMLTableRowElement, HTMLAttributes<HTMLTableRowElem
     <tr
       ref={ref}
       className={cn(
-        "border-b border-white/[0.03] transition-colors hover:bg-white/[0.015]",
+        "border-b border-card-border transition-colors hover:bg-card-hover/50",
         className
       )}
       {...props}
@@ -46,7 +46,7 @@ const TableHead = forwardRef<HTMLTableCellElement, ThHTMLAttributes<HTMLTableCel
     <th
       ref={ref}
       className={cn(
-        "h-11 px-4 text-left align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider bg-[#080c14]",
+        "h-11 px-4 text-left align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider bg-background",
         className
       )}
       {...props}
@@ -57,7 +57,7 @@ TableHead.displayName = "TableHead"
 
 const TableCell = forwardRef<HTMLTableCellElement, TdHTMLAttributes<HTMLTableCellElement>>(
   ({ className, ...props }, ref) => (
-    <td ref={ref} className={cn("p-4 align-middle text-foreground/90", className)} {...props} />
+    <td ref={ref} className={cn("p-4 align-middle text-foreground/80", className)} {...props} />
   )
 )
 TableCell.displayName = "TableCell"
@@ -85,7 +85,7 @@ function SortableHeader({ label, field, currentSort, onSort }: SortableHeaderPro
             <ChevronDown className="w-3.5 h-3.5 text-primary" />
           )
         ) : (
-          <ChevronsUpDown className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
+          <ChevronsUpDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-muted-foreground transition-colors" />
         )}
       </button>
     </TableHead>

@@ -188,15 +188,15 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="flex flex-col h-[600px] rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
+    <div className="flex flex-col h-[600px] rounded-2xl bg-card border border-card-border overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-card-border">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center shadow-sm">
-            <Bot className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Bot className="w-4 h-4 text-primary" />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">AI Investigation Assistant</p>
-            <p className="text-[11px] text-muted-foreground/60">Natural language to SQL over live FIR data</p>
+            <p className="text-[11px] text-muted-foreground">Natural language to SQL over live FIR data</p>
           </div>
         </div>
         <Badge variant="success" size="sm" dot>Online</Badge>
@@ -212,7 +212,7 @@ export function ChatInterface() {
               className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
             >
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                msg.role === "user" ? "bg-primary/10" : "bg-gradient-to-br from-primary to-accent-cyan"
+                msg.role === "user" ? "bg-primary/10" : "bg-primary/10"
               }`}>
                 {msg.role === "user" ? (
                   <User className="w-3.5 h-3.5 text-primary" />
@@ -225,7 +225,7 @@ export function ChatInterface() {
                   ? "bg-primary/8 border border-primary/15"
                   : msg.error
                     ? "bg-accent-rose/5 border border-accent-rose/15"
-                    : "bg-white/[0.02] border border-white/[0.04]"
+                    : "bg-card border border-card-border"
               } rounded-xl px-4 py-3`}>
                 {msg.response ? (
                   <AssistantReply response={msg.response} />
@@ -239,7 +239,7 @@ export function ChatInterface() {
                     {msg.content}
                   </div>
                 )}
-                <p className="text-[10px] text-muted-foreground/40 mt-2">
+                <p className="text-[10px] text-muted-foreground mt-2">
                   {msg.timestamp.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
@@ -247,11 +247,11 @@ export function ChatInterface() {
           ))}
           {isLoading && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center">
-                <Bot className="w-3.5 h-3.5 text-white" />
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Bot className="w-3.5 h-3.5 text-primary" />
               </div>
-              <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground/70">
+              <div className="bg-card border border-card-border rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <RefreshCw className="w-4 h-4 animate-spin" />
                   Translating to SQL and querying the database...
                 </div>
@@ -269,9 +269,9 @@ export function ChatInterface() {
               <button
                 key={s}
                 onClick={() => handleSend(s)}
-                className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-xs text-muted-foreground/60 hover:text-foreground/80 hover:bg-white/[0.05] hover:border-primary/20 transition-all"
+                className="px-3 py-1.5 rounded-lg bg-card border border-card-border text-xs text-muted-foreground hover:text-foreground hover:bg-card-hover transition-all"
               >
-                <Sparkles className="w-3 h-3 inline mr-1 text-primary/70" />
+                <Sparkles className="w-3 h-3 inline mr-1 text-primary" />
                 {s}
               </button>
             ))}
@@ -279,14 +279,14 @@ export function ChatInterface() {
         </div>
       )}
 
-      <div className="p-4 border-t border-white/[0.04]">
+      <div className="p-4 border-t border-card-border">
         <div className="flex items-center gap-3">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend(input)}
             placeholder="Ask anything about crime data..."
-            className="flex-1 px-4 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-foreground placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 focus:bg-white/[0.05] transition-all"
+            className="flex-1 px-4 py-2.5 bg-card border border-card-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:bg-card transition-all"
           />
           <button
             onClick={() => handleSend(input)}

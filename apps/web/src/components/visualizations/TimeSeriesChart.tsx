@@ -46,36 +46,36 @@ export function TimeSeriesChart({ data, title, subtitle, height = 400 }: TimeSer
         <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="incidentsGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#7B241C" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#7B241C" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="solvedGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+              <stop offset="5%" stopColor="#2D8B55" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#2D8B55" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(44,36,30,0.06)" />
           <XAxis
             dataKey="date"
-            tick={{ fill: "#64748b", fontSize: 11 }}
+            tick={{ fill: "#6B6258", fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,255,255,0.05)" }}
+            axisLine={{ stroke: "rgba(44,36,30,0.08)" }}
             tickFormatter={(val) => val.slice(5)}
           />
           <YAxis
-            tick={{ fill: "#64748b", fontSize: 11 }}
+            tick={{ fill: "#6B6258", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend
-            wrapperStyle={{ fontSize: 12, color: "#94a3b8" }}
+            wrapperStyle={{ fontSize: 12, color: "#6B6258" }}
             iconType="circle"
           />
           <Area
             type="monotone"
             dataKey="incidents"
-            stroke="#3b82f6"
+            stroke="#7B241C"
             strokeWidth={2}
             fill="url(#incidentsGradient)"
             name="Incidents"
@@ -83,7 +83,7 @@ export function TimeSeriesChart({ data, title, subtitle, height = 400 }: TimeSer
           <Area
             type="monotone"
             dataKey="solved"
-            stroke="#10b981"
+            stroke="#2D8B55"
             strokeWidth={2}
             fill="url(#solvedGradient)"
             name="Solved"
@@ -91,8 +91,8 @@ export function TimeSeriesChart({ data, title, subtitle, height = 400 }: TimeSer
           <Brush
             dataKey="date"
             height={30}
-            stroke="#3b82f6"
-            fill="rgba(13,27,42,0.6)"
+            stroke="#7B241C"
+            fill="rgba(247,242,232,0.8)"
             travellerWidth={10}
             gap={1}
           />

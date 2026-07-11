@@ -61,7 +61,7 @@ export function CrimeDistribution({ data, title = "Crime Distribution" }: CrimeD
                   <span className="text-sm text-foreground truncate">{item.type}</span>
                   <span className="text-sm font-medium text-muted-foreground">{item.count}</span>
                 </div>
-                <div className="mt-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                <div className="mt-1 h-1.5 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{ width: `${item.percentage}%`, background: item.color }}

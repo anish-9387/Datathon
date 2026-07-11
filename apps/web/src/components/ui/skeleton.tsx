@@ -36,7 +36,7 @@ function CardSkeleton() {
 function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
   return (
     <div className="glass-card p-5 space-y-3">
-      <div className="flex gap-4 pb-3 border-b border-white/[0.04]">
+      <div className="flex gap-4 pb-3 border-b border-card-border">
         {Array.from({ length: cols }).map((_, i) => (
           <Skeleton key={i} className="flex-1 h-3" />
         ))}

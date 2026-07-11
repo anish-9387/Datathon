@@ -13,12 +13,12 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   ({ className, variant = "default", size = "sm", dot, children, ...props }, ref) => {
     const dotColors = {
       default: "bg-muted-foreground",
-      success: "bg-emerald-400",
-      warning: "bg-amber-400",
-      danger: "bg-rose-400",
-      info: "bg-cyan-400",
-      purple: "bg-violet-400",
-      neutral: "bg-zinc-500",
+      success: "bg-accent-emerald",
+      warning: "bg-accent-amber",
+      danger: "bg-accent-rose",
+      info: "bg-accent-cyan",
+      purple: "bg-accent-violet",
+      neutral: "bg-muted",
     }
     return (
       <span
@@ -26,13 +26,13 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
         className={cn(
           "inline-flex items-center font-medium rounded-full",
           size === "sm" ? "px-2.5 py-0.5 text-[11px] leading-4" : "px-3 py-1 text-xs",
-          variant === "default" && "bg-white/[0.04] text-muted-foreground border border-white/[0.06]",
-          variant === "success" && "bg-emerald-500/8 text-emerald-400 border border-emerald-500/15",
-          variant === "warning" && "bg-amber-500/8 text-amber-400 border border-amber-500/15",
-          variant === "danger" && "bg-rose-500/8 text-rose-400 border border-rose-500/15",
-          variant === "info" && "bg-cyan-500/8 text-cyan-400 border border-cyan-500/15",
-          variant === "purple" && "bg-violet-500/8 text-violet-400 border border-violet-500/15",
-          variant === "neutral" && "bg-zinc-500/8 text-zinc-400 border border-zinc-500/15",
+          variant === "default" && "bg-card-hover text-muted-foreground border border-card-border",
+          variant === "success" && "bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/15",
+          variant === "warning" && "bg-accent-amber/10 text-accent-amber border border-accent-amber/15",
+          variant === "danger" && "bg-accent-rose/10 text-accent-rose border border-accent-rose/15",
+          variant === "info" && "bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/15",
+          variant === "purple" && "bg-accent-violet/10 text-accent-violet border border-accent-violet/15",
+          variant === "neutral" && "bg-muted/10 text-muted border border-muted/15",
           className
         )}
         {...props}

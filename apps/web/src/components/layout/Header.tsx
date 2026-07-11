@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import {
   Bell, ChevronDown, Settings, Shield, Command, LogOut
 } from "lucide-react"
@@ -39,19 +40,19 @@ export function Header({ onCmdK }: { onCmdK: () => void }) {
   })
 
   return (
-    <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-white/[0.04]">
-      <div className="flex items-center justify-between h-14 px-5">
+    <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-card-border">
+      <div className="flex items-center justify-between h-14 px-6">
         <div className="flex items-center gap-4">
           <nav className="flex items-center gap-1.5 text-sm">
             {breadcrumbs.map((crumb, idx) => (
               <span key={crumb.path} className="flex items-center gap-1.5">
                 {idx > 0 && (
-                  <span className="text-muted-foreground/20 text-xs">/</span>
+                  <span className="text-muted-foreground text-xs">/</span>
                 )}
                 <span className={cn(
                   idx === breadcrumbs.length - 1
                     ? "text-foreground font-medium"
-                    : "text-muted-foreground/60"
+                    : "text-muted-foreground"
                 )}>
                   {crumb.name}
                 </span>
@@ -63,19 +64,19 @@ export function Header({ onCmdK }: { onCmdK: () => void }) {
         <div className="flex items-center gap-2">
           <button
             onClick={onCmdK}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-muted-foreground/60 text-xs hover:text-foreground hover:bg-white/[0.05] hover:border-white/[0.08] transition-all duration-200"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-card-border text-muted-foreground text-xs hover:text-foreground hover:bg-card-hover transition-all duration-150"
           >
             <Command className="w-3.5 h-3.5" />
             <span>Search</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.04] text-[10px] font-mono text-muted-foreground/40 border border-white/[0.04]">Ctrl+K</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-card-hover text-[10px] font-mono text-muted-foreground border border-card-border">Ctrl+K</kbd>
           </button>
 
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-lg hover:bg-white/[0.04] text-muted-foreground/60 hover:text-foreground transition-colors"
+              className="relative p-2 rounded-xl hover:bg-card-hover text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Bell className="w-4.5 h-4.5" />
+              <Bell className="w-[18px] h-[18px]" />
               <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-accent-rose animate-pulse" />
             </button>
             <AnimatePresence>
@@ -85,12 +86,12 @@ export function Header({ onCmdK }: { onCmdK: () => void }) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-80 rounded-xl bg-background border border-white/[0.06] shadow-2xl shadow-black/40 overflow-hidden"
+                  className="absolute right-0 top-full mt-2 w-80 rounded-2xl bg-card border border-card-border shadow-xl overflow-hidden"
                 >
-                  <div className="p-4 border-b border-white/[0.04]">
+                  <div className="p-4 border-b border-card-border">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold text-foreground">Notifications</p>
-                      <span className="text-[11px] text-muted-foreground/50">Mark all read</span>
+                      <span className="text-[11px] text-muted-foreground">Mark all read</span>
                     </div>
                   </div>
                   <div className="max-h-[300px] overflow-y-auto">
@@ -100,13 +101,13 @@ export function Header({ onCmdK }: { onCmdK: () => void }) {
                       { title: "Forecast Updated", desc: "High probability of theft in your area tomorrow", time: "1h ago", color: "bg-accent-amber" },
                       { title: "New Case Assigned", desc: "FIR #2025-1042 assigned to your team", time: "3h ago", color: "bg-primary" },
                     ].map((notif, i) => (
-                      <div key={i} className="p-4 border-b border-white/[0.03] hover:bg-white/[0.015] transition-colors cursor-pointer">
+                      <div key={i} className="p-4 border-b border-card-border hover:bg-card-hover transition-colors cursor-pointer">
                         <div className="flex items-start gap-3">
                           <div className={cn("w-2 h-2 rounded-full mt-1.5 flex-shrink-0", notif.color)} />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-foreground">{notif.title}</p>
-                            <p className="text-xs text-muted-foreground/60 mt-0.5">{notif.desc}</p>
-                            <p className="text-[11px] text-muted-foreground/40 mt-1">{notif.time}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{notif.desc}</p>
+                            <p className="text-[11px] text-muted-foreground mt-1">{notif.time}</p>
                           </div>
                         </div>
                       </div>
@@ -120,16 +121,16 @@ export function Header({ onCmdK }: { onCmdK: () => void }) {
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/[0.04] transition-colors"
+              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-card-hover transition-colors"
             >
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center text-[11px] font-bold text-white shadow-sm">
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[11px] font-bold text-primary">
                 SP
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-foreground leading-tight">Superintendent</p>
-                <p className="text-[11px] text-muted-foreground/50">Admin</p>
+                <p className="text-[11px] text-muted-foreground">Admin</p>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40 hidden md:block" />
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground hidden md:block" />
             </button>
             <AnimatePresence>
               {showUserMenu && (
@@ -138,7 +139,7 @@ export function Header({ onCmdK }: { onCmdK: () => void }) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-background border border-white/[0.06] shadow-2xl shadow-black/40 overflow-hidden"
+                  className="absolute right-0 top-full mt-2 w-56 rounded-2xl bg-card border border-card-border shadow-xl overflow-hidden"
                 >
                   {[
                     { label: "Profile", icon: Shield },
@@ -146,14 +147,17 @@ export function Header({ onCmdK }: { onCmdK: () => void }) {
                   ].map((item) => (
                     <button
                       key={item.label}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/80 hover:bg-white/[0.03] transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/80 hover:bg-card-hover transition-colors"
                     >
-                      <item.icon className="w-4 h-4 text-muted-foreground/50" />
+                      <item.icon className="w-4 h-4 text-muted-foreground" />
                       {item.label}
                     </button>
                   ))}
-                  <div className="border-t border-white/[0.04]">
-                    <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-accent-rose hover:bg-accent-rose/5 transition-colors">
+                  <div className="border-t border-card-border">
+                    <button
+                      onClick={() => signOut({ callbackUrl: "/login" })}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-accent-rose hover:bg-accent-rose/5 transition-colors"
+                    >
                       <LogOut className="w-4 h-4" />
                       Sign out
                     </button>

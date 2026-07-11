@@ -30,7 +30,7 @@ function Tabs({
 
 function TabsList({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("inline-flex items-center gap-0.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.05]", className)}>
+    <div className={cn("inline-flex items-center gap-0.5 p-1 rounded-xl bg-card border border-card-border", className)}>
       {children}
     </div>
   )
@@ -52,7 +52,7 @@ function TabsTrigger({
     <button
       onClick={() => ctx.setActiveTab(value)}
       className={cn(
-        "relative px-4 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200",
+        "relative px-4 py-1.5 text-sm font-medium rounded-lg transition-colors duration-150",
         isActive
           ? "text-white"
           : "text-muted-foreground hover:text-foreground",
@@ -62,7 +62,7 @@ function TabsTrigger({
       {isActive && (
         <motion.div
           layoutId="tabs-active"
-          className="absolute inset-0 rounded-lg bg-primary shadow-sm shadow-primary/20"
+          className="absolute inset-0 rounded-lg bg-primary shadow-sm"
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
         />
       )}

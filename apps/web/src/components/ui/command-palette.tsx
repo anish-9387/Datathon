@@ -51,7 +51,6 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  // Debounce the query so we don't hit /api/search on every keystroke.
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 250)
     return () => clearTimeout(timer)
@@ -151,30 +150,30 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-xl animate-scale-in">
-        <div className="glass-card overflow-hidden shadow-2xl shadow-primary/5">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
-            <Search className="w-5 h-5 text-muted flex-shrink-0" />
+        <div className="rounded-2xl bg-card border border-card-border overflow-hidden shadow-xl">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-card-border">
+            <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
             <input
               ref={inputRef}
               value={query}
               onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0) }}
               onKeyDown={handleKeyDown}
               placeholder="Search pages, cases, criminals, districts..."
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted outline-none"
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
             />
             {searching && (
               <span className="text-[11px] text-muted-foreground animate-pulse">Searching…</span>
             )}
-            <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-muted bg-white/5 rounded-md border border-white/5">
+            <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-muted-foreground bg-card-hover rounded-md border border-card-border">
               <Command className="w-3 h-3" />K
             </kbd>
           </div>
           <div className="max-h-[60vh] overflow-y-auto p-2">
             {filtered.length === 0 && !searching && (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                No results found for "{query}"
+                No results found for &quot;{query}&quot;
               </div>
             )}
             {(() => {
@@ -185,7 +184,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
                 return (
                   <div key={item.id}>
                     {showCategory && (
-                      <div className="px-3 pt-3 pb-1 text-[11px] font-semibold text-muted uppercase tracking-wider">
+                      <div className="px-3 pt-3 pb-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                         {item.category}
                       </div>
                     )}
@@ -195,10 +194,10 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
                         "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-left",
                         index === selectedIndex
                           ? "bg-primary/10 text-primary"
-                          : "text-foreground hover:bg-white/5"
+                          : "text-foreground hover:bg-card-hover"
                       )}
                     >
-                      <span className={cn("flex-shrink-0", index === selectedIndex ? "text-primary" : "text-muted")}>
+                      <span className={cn("flex-shrink-0", index === selectedIndex ? "text-primary" : "text-muted-foreground")}>
                         {item.icon}
                       </span>
                       <div className="flex-1 min-w-0">

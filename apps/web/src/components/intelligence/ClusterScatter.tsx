@@ -43,7 +43,7 @@ export function ClusterScatter({ clusters }: ClusterScatterProps) {
   return (
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-foreground mb-4">MO Cluster Visualization</h3>
-      <div className="relative bg-[#0d1b2a] rounded-xl border border-white/5 overflow-hidden" style={{ height: 400 }}>
+      <div className="relative bg-[#E7DDD1] rounded-xl border border-card-border overflow-hidden" style={{ height: 400 }}>
         <div className="absolute inset-0 bg-grid opacity-20" />
         <svg className="absolute inset-0 w-full h-full">
           {clusters.map((c, i) =>

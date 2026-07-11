@@ -54,24 +54,24 @@ export function StationRanking({ data, title = "Police Station Ranking", subtitl
       <div style={{ height: 350 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={sorted} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
-            <XAxis type="number" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+            <XAxis type="number" tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
             <YAxis
               type="category"
               dataKey="name"
-              tick={{ fill: "#64748b", fontSize: 11 }}
+              tick={{ fill: "#6B6258", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               width={100}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
-            <Bar dataKey="solved" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} name="Solved">
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(123,36,28,0.04)" }} />
+            <Bar dataKey="solved" stackId="a" fill="#2D8B55" radius={[0, 0, 0, 0]} name="Solved">
               {sorted.map((_, idx) => (
-                <Cell key={idx} fill="#10b981" />
+                <Cell key={idx} fill="#2D8B55" />
               ))}
             </Bar>
-            <Bar dataKey="pending" stackId="a" fill="rgba(59,130,246,0.3)" radius={[0, 4, 4, 0]} name="Pending">
+            <Bar dataKey="pending" stackId="a" fill="rgba(123,36,28,0.15)" radius={[0, 4, 4, 0]} name="Pending">
               {sorted.map((entry, idx) => (
-                <Cell key={idx} fill={entry.rate > 75 ? "rgba(16,185,129,0.15)" : "rgba(59,130,246,0.2)"} />
+                <Cell key={idx} fill={entry.rate > 75 ? "rgba(45,139,85,0.15)" : "rgba(123,36,28,0.12)"} />
               ))}
             </Bar>
           </BarChart>

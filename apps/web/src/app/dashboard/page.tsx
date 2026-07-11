@@ -110,10 +110,10 @@ export default function DashboardPage() {
         ? Math.round(((last.solved - prev.solved) / prev.solved) * 1000) / 10
         : 0
     return [
-      { label: "Total Cases", value: s.totalCases.toLocaleString(), change: s.trend, icon: BarChart3, color: "from-primary to-blue-500", gradient: "from-primary/10 to-blue-500/5" },
-      { label: "Solved", value: s.solvedCases.toLocaleString(), change: solvedChange, icon: Shield, color: "from-emerald-500 to-emerald-600", gradient: "from-emerald-500/10 to-emerald-600/5" },
-      { label: "Pending", value: s.pendingCases.toLocaleString(), caption: `${s.activeInvestigations} active`, icon: Clock, color: "from-amber-500 to-amber-600", gradient: "from-amber-500/10 to-amber-600/5" },
-      { label: "Chargesheet Rate", value: `${s.chargesheetRate}%`, caption: `${s.avgResolutionDays} days avg`, icon: Activity, color: "from-cyan-500 to-cyan-600", gradient: "from-cyan-500/10 to-cyan-600/5" },
+      { label: "Total Cases", value: s.totalCases.toLocaleString(), change: s.trend, icon: BarChart3, color: "from-primary to-primary-light", gradient: "from-primary/10 to-primary/5" },
+      { label: "Solved", value: s.solvedCases.toLocaleString(), change: solvedChange, icon: Shield, color: "from-accent-emerald to-accent-emerald/80", gradient: "from-accent-emerald/10 to-accent-emerald/5" },
+      { label: "Pending", value: s.pendingCases.toLocaleString(), caption: `${s.activeInvestigations} active`, icon: Clock, color: "from-accent-amber to-accent-amber/80", gradient: "from-accent-amber/10 to-accent-amber/5" },
+      { label: "Chargesheet Rate", value: `${s.chargesheetRate}%`, caption: `${s.avgResolutionDays} days avg`, icon: Activity, color: "from-accent-cyan to-accent-cyan/80", gradient: "from-accent-cyan/10 to-accent-cyan/5" },
     ] as {
       label: string
       value: string
@@ -128,10 +128,10 @@ export default function DashboardPage() {
   if (stats.loading) {
     return (
       <AppShell>
-        <motion.div className="space-y-6 p-6" variants={containerVariants} initial="hidden" animate="visible">
+        <motion.div className="flex flex-col" style={{ gap: "1.75rem" }} variants={containerVariants} initial="hidden" animate="visible">
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Intelligence Dashboard</h1>
-            <p className="text-sm text-muted-foreground/60 mt-1">Loading real-time data...</p>
+            <p className="text-sm text-muted-foreground mt-1">Loading real-time data...</p>
           </div>
           <KPISkeleton />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -146,10 +146,10 @@ export default function DashboardPage() {
   if (stats.error || !stats.data) {
     return (
       <AppShell>
-        <div className="space-y-6 p-6">
+        <div className="flex flex-col" style={{ gap: "1.75rem" }}>
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Intelligence Dashboard</h1>
-            <p className="text-sm text-muted-foreground/60 mt-1">Real-time crime analytics for Karnataka Police</p>
+            <p className="text-sm text-muted-foreground mt-1">Real-time crime analytics for Karnataka Police</p>
           </div>
           <ErrorCard message={stats.error || "No data returned"} onRetry={stats.refresh} />
         </div>
@@ -160,7 +160,8 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <motion.div
-        className="space-y-6 p-6"
+        className="flex flex-col"
+        style={{ gap: "1.75rem" }}
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -168,7 +169,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants} className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Intelligence Dashboard</h1>
-            <p className="text-sm text-muted-foreground/60 mt-1">Real-time crime analytics for Karnataka Police</p>
+            <p className="text-sm text-muted-foreground mt-1">Real-time crime analytics for Karnataka Police</p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="success" size="sm" dot>Live</Badge>
@@ -177,7 +178,7 @@ export default function DashboardPage() {
 
         <motion.div
           variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
         >
           {kpiCards.map((kpi, idx) => (
             <motion.div
@@ -193,7 +194,7 @@ export default function DashboardPage() {
                 )} />
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-[0.08em]">{kpi.label}</span>
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-[0.08em]">{kpi.label}</span>
                     <div className={cn("w-8 h-8 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-sm", kpi.color)}>
                       <kpi.icon className="w-4 h-4 text-white" />
                     </div>
@@ -204,7 +205,7 @@ export default function DashboardPage() {
                       <>
                         <span className={cn(
                           "flex items-center gap-0.5 text-xs font-medium",
-                          kpi.change >= 0 ? "text-emerald-400" : "text-accent-rose"
+                          kpi.change >= 0 ? "text-accent-emerald" : "text-accent-rose"
                         )}>
                           {kpi.change >= 0 ? (
                             <ArrowUpRight className="w-3 h-3" />
@@ -213,10 +214,10 @@ export default function DashboardPage() {
                           )}
                           {Math.abs(kpi.change)}%
                         </span>
-                        <span className="text-xs text-muted-foreground/40">vs last month</span>
+                        <span className="text-xs text-muted-foreground">vs last month</span>
                       </>
                     ) : (
-                      <span className="text-xs text-muted-foreground/50">{kpi.caption}</span>
+                      <span className="text-xs text-muted-foreground">{kpi.caption}</span>
                     )}
                   </div>
                 </div>
@@ -235,7 +236,7 @@ export default function DashboardPage() {
               data={weeklyTimeline}
               title="Crime Time Series"
               subtitle="Weekly incidents and solved cases (last 12 months)"
-              height={360}
+              height={320}
             />
           )}
           <CrimeDistribution data={stats.data.crimeDistribution} title="Crime Type Distribution" />

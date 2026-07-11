@@ -15,16 +15,16 @@ interface StatusDashboardProps {
 }
 
 const statusColors: Record<string, { color: string; bg: string; dot: string; bar: string }> = {
-  "Under Investigation": { color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20", dot: "bg-cyan-400", bar: "#06b6d4" },
-  "Chargesheet Filed": { color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20", dot: "bg-blue-400", bar: "#3b82f6" },
-  "Final Report Submitted": { color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20", dot: "bg-violet-400", bar: "#8b5cf6" },
-  "Pending Court": { color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", dot: "bg-amber-400", bar: "#f59e0b" },
-  "Convicted": { color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20", dot: "bg-emerald-400", bar: "#10b981" },
-  "Acquitted": { color: "text-rose-400", bg: "bg-rose-500/10 border-rose-500/20", dot: "bg-rose-400", bar: "#f43f5e" },
-  "Closed": { color: "text-slate-400", bg: "bg-slate-500/10 border-slate-500/20", dot: "bg-slate-400", bar: "#64748b" },
+  "Under Investigation": { color: "text-[#C65D2E]", bg: "bg-[#C65D2E]/8 border-[#C65D2E]/15", dot: "bg-[#C65D2E]", bar: "#C65D2E" },
+  "Chargesheet Filed": { color: "text-[#7B241C]", bg: "bg-[#7B241C]/8 border-[#7B241C]/15", dot: "bg-[#7B241C]", bar: "#7B241C" },
+  "Final Report Submitted": { color: "text-[#8B5E3C]", bg: "bg-[#8B5E3C]/8 border-[#8B5E3C]/15", dot: "bg-[#8B5E3C]", bar: "#8B5E3C" },
+  "Pending Court": { color: "text-[#E8A33A]", bg: "bg-[#E8A33A]/8 border-[#E8A33A]/15", dot: "bg-[#E8A33A]", bar: "#E8A33A" },
+  "Convicted": { color: "text-[#2D8B55]", bg: "bg-[#2D8B55]/8 border-[#2D8B55]/15", dot: "bg-[#2D8B55]", bar: "#2D8B55" },
+  "Acquitted": { color: "text-[#C0392B]", bg: "bg-[#C0392B]/8 border-[#C0392B]/15", dot: "bg-[#C0392B]", bar: "#C0392B" },
+  "Closed": { color: "text-[#6B6258]", bg: "bg-[#6B6258]/8 border-[#6B6258]/15", dot: "bg-[#6B6258]", bar: "#6B6258" },
 }
 
-const fallbackColors = { color: "text-muted-foreground", bg: "bg-white/5 border-white/10", dot: "bg-muted", bar: "#64748b" }
+const fallbackColors = { color: "text-muted-foreground", bg: "bg-[#E7DDD1]/30 border-[#E7DDD1]/50", dot: "bg-muted", bar: "#6B6258" }
 
 export function StatusDashboard({ data }: StatusDashboardProps) {
   return (
@@ -48,7 +48,7 @@ export function StatusDashboard({ data }: StatusDashboardProps) {
                   </div>
                   <span className="text-lg font-bold text-foreground">{item.count.toLocaleString()}</span>
                 </div>
-                <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                <div className="h-2 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                   <motion.div
                     className="h-full rounded-full"
                     initial={{ width: 0 }}

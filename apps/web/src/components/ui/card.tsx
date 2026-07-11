@@ -22,13 +22,13 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-2xl transition-all duration-300",
+          "rounded-2xl transition-all duration-200",
           paddingMap[padding],
           variant === "glass" && "glass-card",
-          variant === "solid" && "bg-[#0b1626] border border-[#1e3a5f]/35",
-          variant === "bordered" && "bg-transparent border border-white/[0.04]",
-          variant === "gradient" && "bg-gradient-to-br from-[#0b1626] via-[#0f1f3a] to-[#0b1626] border border-[#1e3a5f]/30",
-          hover && "hover:border-primary/20 hover:shadow-lg hover:shadow-primary/[0.03] cursor-pointer",
+          variant === "solid" && "bg-card border border-card-border",
+          variant === "bordered" && "bg-transparent border border-card-border",
+          variant === "gradient" && "bg-card border border-card-border",
+          hover && "hover:border-card-hover hover:shadow-md cursor-pointer",
           className
         )}
         {...props}
@@ -49,7 +49,7 @@ function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 }
 
 function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("px-5 pb-5 pt-3 border-t border-white/[0.04]", className)} {...props} />
+  return <div className={cn("px-5 pb-5 pt-3 border-t border-card-border", className)} {...props} />
 }
 
 export { Card, CardHeader, CardContent, CardFooter }

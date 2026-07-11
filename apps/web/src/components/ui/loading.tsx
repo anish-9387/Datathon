@@ -20,7 +20,7 @@ export function FullPageLoading({ message }: { message?: string }) {
       <div className="flex flex-col items-center gap-4">
         <LoadingSpinner size="lg" />
         {message && (
-          <p className="text-sm text-muted-foreground/60 animate-pulse-soft">{message}</p>
+          <p className="text-sm text-muted-foreground animate-pulse-soft">{message}</p>
         )}
       </div>
     </div>

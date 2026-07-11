@@ -8,8 +8,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Karnataka Police - Crime Intelligence Platform",
-  description: "Advanced crime intelligence and analytics platform for Karnataka Police",
+  title: "Corvus - Crime Intelligence Platform",
+  description: "Advanced crime intelligence and analytics platform",
 }
 
 export default function RootLayout({
@@ -18,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} dark`}>
-      <body className="min-h-screen bg-[#0a0e1a] text-[#e2e8f0] antialiased">
+    <html lang="en" className={inter.variable}>
+      <body className="min-h-screen bg-[#F7F2E8] text-[#2C241E] antialiased">
         {children}
       </body>
     </html>

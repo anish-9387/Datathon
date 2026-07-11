@@ -200,7 +200,7 @@ export function ForceGraph({ nodes, edges, selectedNodeId, onSelectNode }: Force
       </div>
       <div
         ref={containerRef}
-        className="relative bg-[#0d1b2a] rounded-xl border border-white/5 overflow-hidden cursor-grab active:cursor-grabbing"
+        className="relative bg-[#E7DDD1] rounded-xl border border-card-border overflow-hidden cursor-grab active:cursor-grabbing"
         style={{ height: 500 }}
       >
         <div className="absolute inset-0 bg-grid opacity-20" />
@@ -257,7 +257,7 @@ export function ForceGraph({ nodes, edges, selectedNodeId, onSelectNode }: Force
                 </span>
               </div>
               <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                <span className="text-[10px] bg-[#0d1b2a] px-2 py-0.5 rounded border border-white/10 text-foreground">
+                <span className="text-[10px] bg-card px-2 py-0.5 rounded border border-card-border text-foreground">
                   {node.label} · {NODE_TYPE_LABELS[node.type] || node.type}
                 </span>
               </div>
