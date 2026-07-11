@@ -44,7 +44,7 @@ export default function GangsPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -82,10 +82,10 @@ export default function GangsPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
-                { label: "Detected Networks", value: data.totalGangs, icon: Users, color: "from-primary to-blue-500" },
-                { label: "Total Members", value: gangs.reduce((a, g) => a + g.members, 0), icon: TrendingUp, color: "from-cyan-500 to-cyan-600" },
-                { label: "Modularity", value: data.modularity.toFixed(3), icon: Shield, color: "from-emerald-500 to-emerald-600" },
-                { label: "Active Networks", value: gangs.filter((g) => g.status === "active").length, icon: Network, color: "from-amber-500 to-amber-600" },
+                { label: "Detected Networks", value: data.totalGangs, icon: Users, color: "from-primary to-primary-light" },
+                { label: "Total Members", value: gangs.reduce((a, g) => a + g.members, 0), icon: TrendingUp, color: "from-accent-cyan to-accent-cyan/80" },
+                { label: "Modularity", value: data.modularity.toFixed(3), icon: Shield, color: "from-accent-emerald to-accent-emerald/80" },
+                { label: "Active Networks", value: gangs.filter((g) => g.status === "active").length, icon: Network, color: "from-accent-amber to-accent-amber/80" },
               ].map((kpi, idx) => (
                 <motion.div key={kpi.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
                   <Card className="p-5">
@@ -128,7 +128,7 @@ export default function GangsPage() {
                           <TableCell>{g.cases}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <div className="w-16 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                              <div className="w-16 h-1.5 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                                 <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent-cyan" style={{ width: `${g.influence}%` }} />
                               </div>
                               <span className="text-xs text-muted-foreground">{g.influence}%</span>

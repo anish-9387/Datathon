@@ -64,7 +64,7 @@ export default function HotspotDetectionPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Hotspot Detection</h1>
@@ -111,10 +111,10 @@ export default function HotspotDetectionPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
-                { label: "Predicted Zones", value: predicted.length.toString(), icon: Map, color: "from-primary to-blue-500" },
-                { label: "Peak Risk Score", value: `${peakRisk}/100`, icon: TrendingUp, color: "from-rose-500 to-rose-600" },
-                { label: "Avg Risk Score", value: avgRisk.toFixed(0), icon: Shield, color: "from-emerald-500 to-emerald-600" },
-                { label: "Historical Incidents", value: totalIncidents.toString(), icon: AlertTriangle, color: "from-amber-500 to-amber-600" },
+                { label: "Predicted Zones", value: predicted.length.toString(), icon: Map, color: "from-primary to-primary-light" },
+                { label: "Peak Risk Score", value: `${peakRisk}/100`, icon: TrendingUp, color: "from-accent-rose to-accent-rose/80" },
+                { label: "Avg Risk Score", value: avgRisk.toFixed(0), icon: Shield, color: "from-accent-emerald to-accent-emerald/80" },
+                { label: "Historical Incidents", value: totalIncidents.toString(), icon: AlertTriangle, color: "from-accent-amber to-accent-amber/80" },
               ].map((kpi, idx) => (
                 <motion.div key={kpi.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
                   <Card className="p-5">
@@ -167,7 +167,7 @@ export default function HotspotDetectionPage() {
                                 <span>Incident Density</span>
                                 <span>{spot.incidents} cases</span>
                               </div>
-                              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                              <div className="h-2 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                                 <motion.div
                                   className="h-full rounded-full"
                                   initial={{ width: 0 }}
@@ -176,10 +176,10 @@ export default function HotspotDetectionPage() {
                                   style={{
                                     background:
                                       spot.incidents / maxHistIncidents >= 0.8
-                                        ? "linear-gradient(90deg, #f43f5e, #fb7185)"
+                                        ? "linear-gradient(90deg, #C0392B, #E74C3C)"
                                         : spot.incidents / maxHistIncidents >= 0.5
-                                          ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
-                                          : "linear-gradient(90deg, #10b981, #34d399)",
+                                          ? "linear-gradient(90deg, #E8A33A, #F0C27A)"
+                                          : "linear-gradient(90deg, #2D8B55, #52BE80)",
                                   }}
                                 />
                               </div>

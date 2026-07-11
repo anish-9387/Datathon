@@ -62,8 +62,8 @@ export function HotspotOverlay({ predicted, historical, modelName }: HotspotOver
           {predicted.length} predicted zones · {historical.length} historical clusters
         </Badge>
       </div>
-      <div className="relative bg-[#E7DDD1] rounded-xl border border-card-border overflow-hidden" style={{ height: 400 }}>
-        <div className="absolute inset-0 bg-grid opacity-20" />
+      <div className="relative bg-[#FBF6EE] rounded-xl border border-card-border overflow-hidden" style={{ height: 400 }}>
+        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(123,36,28,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(123,36,28,0.04) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
         {predicted.map((spot, idx) => {
           const size = 22 + (spot.incidents / maxPredIncidents) * 34
           const intensity = spot.risk / maxRisk
@@ -83,14 +83,14 @@ export function HotspotOverlay({ predicted, historical, modelName }: HotspotOver
                 style={{
                   width: size,
                   height: size,
-                  background: `radial-gradient(circle, rgba(244,63,94,${opacity}), rgba(244,63,94,0.05))`,
-                  border: `1.5px solid rgba(244,63,94,${0.25 + opacity * 0.5})`,
+                  background: `radial-gradient(circle, rgba(192,57,43,${opacity}), rgba(192,57,43,0.05))`,
+                  border: `1.5px solid rgba(192,57,43,${0.25 + opacity * 0.5})`,
                 }}
               >
                 <span className="text-[9px] font-bold text-white/90">{spot.risk}</span>
               </div>
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                <div className="glass-card px-3 py-2 text-xs whitespace-nowrap">
+                <div className="bg-card border border-card-border rounded-xl px-3 py-2 text-xs whitespace-nowrap shadow-lg">
                   <p className="font-medium text-foreground">Predicted zone {spot.id}</p>
                   <p className="text-muted-foreground">Risk: {spot.risk}/100 · ~{spot.incidents} incidents</p>
                   <p className="text-muted-foreground">Confidence: {Math.round(spot.confidence * 100)}%</p>
@@ -115,7 +115,7 @@ export function HotspotOverlay({ predicted, historical, modelName }: HotspotOver
                 style={{ width: size, height: size }}
               />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                <div className="glass-card px-3 py-2 text-xs whitespace-nowrap">
+                <div className="bg-card border border-card-border rounded-xl px-3 py-2 text-xs whitespace-nowrap shadow-lg">
                   <p className="font-medium text-foreground">{spot.name ?? "Unknown station"}</p>
                   <p className="text-muted-foreground">{spot.district ?? "—"} · {spot.incidents} incidents</p>
                 </div>

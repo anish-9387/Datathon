@@ -42,7 +42,7 @@ export default function MOClusteringPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -113,7 +113,7 @@ export default function MOClusteringPage() {
                 <h3 className="text-sm font-semibold text-foreground mb-4">Cluster Details</h3>
                 <div className="space-y-3 max-h-[380px] overflow-y-auto">
                   {clusters.map((c, i) => (
-                    <div key={c.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                    <div key={c.id} className="p-3 rounded-xl bg-[#E7DDD1]/30 border border-[#E7DDD1]/50">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2 min-w-0">
                           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: clusterColor(i) }} />
@@ -142,11 +142,11 @@ export default function MOClusteringPage() {
               <div style={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={clusters} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                    <XAxis dataKey="pattern" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis yAxisId="left" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="pattern" tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis yAxisId="left" tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} />
                     <Tooltip
-                      contentStyle={{ background: "rgba(13,27,42,0.95)", border: "1px solid rgba(27,58,92,0.6)", borderRadius: 8, fontSize: 13 }}
-                      labelStyle={{ color: "#94a3b8" }}
+                      contentStyle={{ background: "#FFFDF9", border: "1px solid #E7DDD1", borderRadius: 8, fontSize: 13, color: "#2C241E" }}
+                      labelStyle={{ color: "#6B6258" }}
                     />
                     <Bar yAxisId="left" dataKey="size" radius={[4, 4, 0, 0]} name="Incidents">
                       {clusters.map((c, i) => (

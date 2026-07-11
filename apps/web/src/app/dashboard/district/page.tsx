@@ -21,7 +21,7 @@ interface District {
   stations: number
 }
 
-const districtColors = ["#3b82f6", "#06b6d4", "#10b981", "#f59e0b", "#f43f5e", "#8b5cf6", "#ec4899"]
+const districtColors = ["#7B241C", "#C65D2E", "#2D8B55", "#E8A33A", "#C0392B", "#8B5E3C", "#A63D2F"]
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12 },
@@ -74,7 +74,7 @@ export default function DistrictPage() {
 
   return (
     <AppShell>
-      <motion.div className="space-y-6 p-6" initial="hidden" animate="visible">
+      <motion.div className="flex flex-col p-6" style={{ gap: "1.75rem" }} initial="hidden" animate="visible">
         <motion.div variants={itemVariants}>
           <h1 className="text-xl font-bold text-foreground tracking-tight">District Analytics</h1>
           <p className="text-sm text-muted-foreground/60 mt-1">Crime statistics across Karnataka districts</p>
@@ -82,10 +82,10 @@ export default function DistrictPage() {
 
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            { label: "Total Districts", value: districts.length, icon: MapPin, gradient: "from-primary/10 to-blue-500/5", color: "from-primary to-blue-500" },
-            { label: "Total Cases", value: summary?.totalCases.toLocaleString() ?? "0", icon: TrendingUp, gradient: "from-cyan-500/10 to-cyan-600/5", color: "from-cyan-500 to-cyan-600" },
-            { label: "Police Stations", value: summary?.totalStations ?? 0, icon: Shield, gradient: "from-emerald-500/10 to-emerald-600/5", color: "from-emerald-500 to-emerald-600" },
-            { label: "Avg Solve Rate", value: `${summary?.solveRate ?? "0.0"}%`, icon: Users, gradient: "from-amber-500/10 to-amber-600/5", color: "from-amber-500 to-amber-600" },
+            { label: "Total Districts", value: districts.length, icon: MapPin, gradient: "from-primary/10 to-primary/5", color: "from-primary to-primary-light" },
+            { label: "Total Cases", value: summary?.totalCases.toLocaleString() ?? "0", icon: TrendingUp, gradient: "from-accent-cyan/10 to-accent-cyan/5", color: "from-accent-cyan to-accent-cyan/80" },
+            { label: "Police Stations", value: summary?.totalStations ?? 0, icon: Shield, gradient: "from-accent-emerald/10 to-accent-emerald/5", color: "from-accent-emerald to-accent-emerald/80" },
+            { label: "Avg Solve Rate", value: `${summary?.solveRate ?? "0.0"}%`, icon: Users, gradient: "from-accent-amber/10 to-accent-amber/5", color: "from-accent-amber to-accent-amber/80" },
           ].map((kpi, idx) => (
             <motion.div key={kpi.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }}>
               <Card variant="gradient" padding="lg" className="relative overflow-hidden group">
@@ -105,14 +105,14 @@ export default function DistrictPage() {
         </motion.div>
 
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 p-5">
+          <div className="rounded-2xl bg-card border border-card-border p-5">
             <h3 className="text-sm font-semibold text-foreground tracking-tight mb-4">Cases by District (Top 10)</h3>
             <div style={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topDistricts} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                  <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} interval={0} angle={-30} textAnchor="end" height={60} />
-                  <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: "rgba(11,22,38,0.92)", border: "1px solid rgba(30,58,95,0.5)", borderRadius: 10, fontSize: 13 }} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
+                  <XAxis dataKey="name" tick={{ fill: "#6B6258", fontSize: 10 }} axisLine={false} tickLine={false} interval={0} angle={-30} textAnchor="end" height={60} />
+                  <YAxis tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "#FFFDF9", border: "1px solid #E7DDD1", borderRadius: 10, fontSize: 13, color: "#2C241E" }} cursor={{ fill: "rgba(123,36,28,0.04)" }} />
                   <Bar dataKey="cases" radius={[4, 4, 0, 0]}>
                     {topDistricts.map((_, idx) => (<Cell key={idx} fill={districtColors[idx % districtColors.length]} />))}
                   </Bar>
@@ -120,7 +120,7 @@ export default function DistrictPage() {
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 p-5">
+          <div className="rounded-2xl bg-card border border-card-border p-5">
             <h3 className="text-sm font-semibold text-foreground tracking-tight mb-4">District Rankings</h3>
             <div className="max-h-[340px] overflow-y-auto">
               <Table>

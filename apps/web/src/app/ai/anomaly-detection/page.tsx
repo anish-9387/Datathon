@@ -126,10 +126,10 @@ export default function AnomalyDetectionPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
-                { label: "Flagged Anomalies", value: (data?.totalFlagged ?? anomalies.length).toString(), icon: AlertTriangle, color: "from-rose-500 to-rose-600" },
-                { label: "High Priority (85+)", value: highPriority.toString(), icon: Activity, color: "from-amber-500 to-amber-600" },
-                { label: "Corpus Size", value: (data?.corpusSize ?? 0).toString(), icon: TrendingUp, color: "from-emerald-500 to-emerald-600" },
-                { label: "Avg Anomaly Score", value: avgScore.toFixed(0), icon: Search, color: "from-primary to-blue-500" },
+                { label: "Flagged Anomalies", value: (data?.totalFlagged ?? anomalies.length).toString(), icon: AlertTriangle, color: "from-accent-rose to-accent-rose/80" },
+                { label: "High Priority (85+)", value: highPriority.toString(), icon: Activity, color: "from-accent-amber to-accent-amber/80" },
+                { label: "Corpus Size", value: (data?.corpusSize ?? 0).toString(), icon: TrendingUp, color: "from-accent-emerald to-accent-emerald/80" },
+                { label: "Avg Anomaly Score", value: avgScore.toFixed(0), icon: Search, color: "from-primary to-primary-light" },
               ].map((kpi, idx) => (
                 <motion.div key={kpi.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
                   <Card className="p-5">
@@ -157,21 +157,21 @@ export default function AnomalyDetectionPage() {
                   <AnomalyAlert key={anomaly.id} anomaly={anomaly} index={idx} />
                 ))}
               </div>
-              <div className="space-y-6">
+<div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
                 <ChartWrapper title="Flagged Anomalies Timeline" subtitle="Cases flagged per month" height={250}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={timeline}>
                       <defs>
                         <linearGradient id="anomalyGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#C0392B" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#C0392B" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={{ background: "rgba(13,27,42,0.95)", border: "1px solid rgba(27,58,92,0.6)", borderRadius: 8, fontSize: 13 }} />
-                      <Area type="monotone" dataKey="count" stroke="#f43f5e" strokeWidth={2} fill="url(#anomalyGrad)" name="Flagged Cases" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(44,36,30,0.06)" />
+                      <XAxis dataKey="date" tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ background: "#FFFDF9", border: "1px solid #E7DDD1", color: "#2C241E", borderRadius: 8, fontSize: 13 }} />
+                      <Area type="monotone" dataKey="count" stroke="#C0392B" strokeWidth={2} fill="url(#anomalyGrad)" name="Flagged Cases" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </ChartWrapper>
@@ -188,7 +188,7 @@ export default function AnomalyDetectionPage() {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.05 }}
-                          className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white/[0.02]"
+                          className="flex items-center justify-between gap-2 p-2 rounded-lg bg-[#E7DDD1]/20"
                         >
                           <span className="text-xs text-foreground truncate" title={String(p.pattern ?? "")}>
                             {String(p.pattern ?? "Unknown pattern")}

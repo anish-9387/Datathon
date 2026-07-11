@@ -30,12 +30,12 @@ interface ForceGraphProps {
 
 // Real knowledge-graph entity types coming from /api/graph
 export const NODE_COLORS: Record<string, string> = {
-  case: "#3b82f6",
-  person: "#f43f5e",
-  location: "#10b981",
-  weapon: "#f59e0b",
-  district: "#8b5cf6",
-  crime_type: "#06b6d4",
+  case: "#7B241C",
+  person: "#C0392B",
+  location: "#2D8B55",
+  weapon: "#E8A33A",
+  district: "#8B5E3C",
+  crime_type: "#C65D2E",
 }
 
 export const NODE_TYPE_LABELS: Record<string, string> = {
@@ -200,10 +200,10 @@ export function ForceGraph({ nodes, edges, selectedNodeId, onSelectNode }: Force
       </div>
       <div
         ref={containerRef}
-        className="relative bg-[#E7DDD1] rounded-xl border border-card-border overflow-hidden cursor-grab active:cursor-grabbing"
+        className="relative bg-[#FBF6EE] rounded-xl border border-card-border overflow-hidden cursor-grab active:cursor-grabbing"
         style={{ height: 500 }}
       >
-        <div className="absolute inset-0 bg-grid opacity-20" />
+        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(123,36,28,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(123,36,28,0.04) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
         <svg className="absolute inset-0 w-full h-full">
           {edges.map((edge, i) => {
             const source = positions[edge.source]
@@ -217,7 +217,7 @@ export function ForceGraph({ nodes, edges, selectedNodeId, onSelectNode }: Force
                 y1={source.y}
                 x2={target.x}
                 y2={target.y}
-                stroke={edge.color || (isHighlighted ? "rgba(59,130,246,0.4)" : "rgba(255,255,255,0.06)")}
+                stroke={edge.color || (isHighlighted ? "rgba(123,36,28,0.4)" : "rgba(123,36,28,0.08)")}
                 strokeWidth={isHighlighted ? 2 : 1}
                 className="transition-all duration-300"
               />
@@ -269,7 +269,7 @@ export function ForceGraph({ nodes, edges, selectedNodeId, onSelectNode }: Force
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 p-4 rounded-xl bg-white/[0.02] border border-white/5"
+          className="mt-4 p-4 rounded-xl bg-[#E7DDD1]/20 border border-[#E7DDD1]/50"
         >
           <div className="flex items-center justify-between">
             <div className="min-w-0">

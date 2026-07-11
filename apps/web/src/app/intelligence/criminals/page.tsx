@@ -16,7 +16,7 @@ import { useApi } from "@/hooks/useApi"
 import { cn } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
 
-const barColors = ["#f43f5e", "#f59e0b", "#3b82f6", "#06b6d4", "#10b981", "#8b5cf6", "#ec4899", "#14b8a6"]
+const barColors = ["#7B241C", "#C65D2E", "#2D8B55", "#E8A33A", "#C0392B", "#8B5E3C", "#A63D2F", "#6B6258"]
 
 interface CriminalsResponse {
   criminals: Criminal[]
@@ -100,10 +100,10 @@ export default function CriminalsPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
-                { label: "Tracked Criminals", value: criminals.length, icon: User, color: "from-primary to-blue-500" },
-                { label: "Linked Cases", value: criminals.reduce((a, c) => a + c.crimes, 0), icon: TrendingUp, color: "from-cyan-500 to-cyan-600" },
-                { label: "Repeat Offenders", value: criminals.filter((c) => c.repeat).length, icon: Repeat, color: "from-emerald-500 to-emerald-600" },
-                { label: "Avg Influence", value: `${avgInfluence}%`, icon: Activity, color: "from-amber-500 to-amber-600" },
+                { label: "Tracked Criminals", value: criminals.length, icon: User, color: "from-primary to-primary-light" },
+                { label: "Linked Cases", value: criminals.reduce((a, c) => a + c.crimes, 0), icon: TrendingUp, color: "from-accent-cyan to-accent-cyan/80" },
+                { label: "Repeat Offenders", value: criminals.filter((c) => c.repeat).length, icon: Repeat, color: "from-accent-emerald to-accent-emerald/80" },
+                { label: "Avg Influence", value: `${avgInfluence}%`, icon: Activity, color: "from-accent-amber to-accent-amber/80" },
               ].map((kpi, idx) => (
                 <motion.div key={kpi.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
                   <Card className="p-5">
@@ -121,15 +121,15 @@ export default function CriminalsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CriminalScoreCard criminals={criminals.slice(0, 6)} />
-              <div className="space-y-6">
+<div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
                 <ChartWrapper title="Influence Distribution" subtitle={`Top network influence scores · corpus ${data.corpusSize}`}>
                   <div style={{ height: 300 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={criminals.slice(0, 8)} layout="vertical" margin={{ top: 5, right: 20, left: 60, bottom: 5 }}>
-                        <XAxis type="number" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis type="category" dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
+                        <XAxis type="number" tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis type="category" dataKey="name" tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
                         <Tooltip
-                          contentStyle={{ background: "rgba(13,27,42,0.95)", border: "1px solid rgba(27,58,92,0.6)", borderRadius: 8, fontSize: 13 }}
+                          contentStyle={{ background: "#FFFDF9", border: "1px solid #E7DDD1", color: "#2C241E", borderRadius: 8, fontSize: 13 }}
                         />
                         <Bar dataKey="influence" radius={[0, 4, 4, 0]}>
                           {criminals.slice(0, 8).map((_, idx) => (
@@ -173,7 +173,7 @@ export default function CriminalsPage() {
                         <TableCell>{c.crimes}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                            <div className="w-16 h-1.5 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                               <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent-cyan" style={{ width: `${c.influence}%` }} />
                             </div>
                             <span className="text-xs text-muted-foreground">{c.influence}%</span>

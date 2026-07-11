@@ -1,5 +1,6 @@
 "use client"
 
+import { signOut } from "next-auth/react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -178,9 +179,14 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
               <p className="text-[11px] text-muted-foreground truncate">Admin Access</p>
             </div>
           )}
-          <button className="p-1.5 rounded-lg hover:bg-accent-rose/5 text-muted-foreground hover:text-accent-rose transition-colors">
-            <LogOut className="w-4 h-4" />
-          </button>
+          {!collapsed && (
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="p-1.5 rounded-lg hover:bg-accent-rose/5 text-muted-foreground hover:text-accent-rose transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
         </div>
         {!collapsed && (
           <div className="mt-2 px-3 py-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">

@@ -58,7 +58,7 @@ export default function GraphPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

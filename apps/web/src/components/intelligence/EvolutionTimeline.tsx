@@ -32,9 +32,9 @@ export function EvolutionTimeline({ data }: EvolutionTimelineProps) {
               <div
                 className="absolute left-3 top-1 w-8 h-8 rounded-full border-2 flex items-center justify-center text-[10px] font-bold"
                 style={{
-                  background: `${phase.severity > 80 ? "rgba(244,63,94,0.15)" : phase.severity > 50 ? "rgba(245,158,11,0.15)" : "rgba(16,185,129,0.15)"}`,
-                  borderColor: `${phase.severity > 80 ? "rgba(244,63,94,0.4)" : phase.severity > 50 ? "rgba(245,158,11,0.4)" : "rgba(16,185,129,0.4)"}`,
-                  color: phase.severity > 80 ? "#f43f5e" : phase.severity > 50 ? "#f59e0b" : "#10b981",
+                  background: `${phase.severity > 80 ? "rgba(192,57,43,0.15)" : phase.severity > 50 ? "rgba(232,163,58,0.15)" : "rgba(45,139,85,0.15)"}`,
+                  borderColor: `${phase.severity > 80 ? "rgba(192,57,43,0.4)" : phase.severity > 50 ? "rgba(232,163,58,0.4)" : "rgba(45,139,85,0.4)"}`,
+                  color: phase.severity > 80 ? "#C0392B" : phase.severity > 50 ? "#E8A33A" : "#2D8B55",
                 }}
               >
                 {idx + 1}
@@ -48,14 +48,14 @@ export function EvolutionTimeline({ data }: EvolutionTimelineProps) {
                   <span>Severity: {phase.severity}%</span>
                   <span>Incidents: {phase.incidents}</span>
                 </div>
-                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                <div className="h-1.5 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                   <motion.div
                     className="h-full rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${phase.severity}%` }}
                     transition={{ duration: 1, delay: idx * 0.2 }}
                     style={{
-                      background: `linear-gradient(90deg, ${phase.severity > 80 ? "#f43f5e" : phase.severity > 50 ? "#f59e0b" : "#10b981"}, transparent)`,
+                      background: `linear-gradient(90deg, ${phase.severity > 80 ? "#C0392B" : phase.severity > 50 ? "#E8A33A" : "#2D8B55"}, transparent)`,
                     }}
                   />
                 </div>

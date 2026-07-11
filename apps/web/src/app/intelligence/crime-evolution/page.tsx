@@ -49,7 +49,7 @@ export default function CrimeEvolutionPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -120,7 +120,7 @@ export default function CrimeEvolutionPage() {
                         <span className="text-muted-foreground">{phase.date} · {phase.phase}</span>
                         <span className="font-medium text-foreground">{phase.severity}%</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                         <motion.div
                           className="h-full rounded-full"
                           initial={{ width: 0 }}
@@ -128,10 +128,10 @@ export default function CrimeEvolutionPage() {
                           transition={{ duration: 1 }}
                           style={{
                             background: phase.severity > 80
-                              ? "linear-gradient(90deg, #f43f5e, #fb7185)"
+                              ? "linear-gradient(90deg, #C0392B, #E74C3C)"
                               : phase.severity > 50
-                              ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
-                              : "linear-gradient(90deg, #10b981, #34d399)",
+                              ? "linear-gradient(90deg, #E8A33A, #F0C27A)"
+                              : "linear-gradient(90deg, #2D8B55, #52BE80)",
                           }}
                         />
                       </div>
@@ -163,23 +163,23 @@ export default function CrimeEvolutionPage() {
                   <AreaChart data={timeline}>
                     <defs>
                       <linearGradient id="severityGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#C0392B" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#C0392B" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(44,36,30,0.06)" />
+                    <XAxis dataKey="date" tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} />
                     <Tooltip
-                      contentStyle={{ background: "rgba(13,27,42,0.95)", border: "1px solid rgba(27,58,92,0.6)", borderRadius: 8, fontSize: 13 }}
+                      contentStyle={{ background: "#FFFDF9", border: "1px solid #E7DDD1", borderRadius: 8, fontSize: 13, color: "#2C241E" }}
                       labelFormatter={(label) => {
                         const point = timeline.find((p) => p.date === label)
                         return point ? `${label} · ${point.phase}` : label
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: 12, color: "#94a3b8" }} />
-                    <Area type="monotone" dataKey="severity" stroke="#f43f5e" strokeWidth={2} fill="url(#severityGrad)" name="Severity %" />
-                    <Area type="monotone" dataKey="incidents" stroke="#f59e0b" strokeWidth={2} fill="none" name="Incidents" strokeDasharray="4 4" />
+                    <Legend wrapperStyle={{ fontSize: 12, color: "#6B6258" }} />
+                    <Area type="monotone" dataKey="severity" stroke="#C0392B" strokeWidth={2} fill="url(#severityGrad)" name="Severity %" />
+                    <Area type="monotone" dataKey="incidents" stroke="#E8A33A" strokeWidth={2} fill="none" name="Incidents" strokeDasharray="4 4" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

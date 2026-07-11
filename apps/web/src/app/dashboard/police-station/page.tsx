@@ -63,7 +63,7 @@ export default function PoliceStationPage() {
 
   return (
     <AppShell>
-      <motion.div className="space-y-6 p-6" initial="hidden" animate="visible">
+      <motion.div className="flex flex-col p-6" style={{ gap: "1.75rem" }} initial="hidden" animate="visible">
         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Police Station Drill-down</h1>
@@ -85,7 +85,7 @@ export default function PoliceStationPage() {
           <>
             <KPISkeleton />
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-              <div className="lg:col-span-3"><div className="rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 p-5"><div className="skeleton h-[350px] rounded-xl" /></div></div>
+              <div className="lg:col-span-3"><div className="rounded-2xl bg-card border border-card-border p-5"><div className="skeleton h-[350px] rounded-xl" /></div></div>
               <div className="lg:col-span-2"><TableSkeleton rows={6} cols={3} /></div>
             </div>
           </>
@@ -95,10 +95,10 @@ export default function PoliceStationPage() {
           <>
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
-                { label: "Stations", value: String(stations.length), icon: Shield, gradient: "from-primary/10 to-blue-500/5", color: "from-primary to-blue-500" },
-                { label: "Total Cases", value: (summary?.totalCases ?? 0).toLocaleString(), icon: TrendingUp, gradient: "from-cyan-500/10 to-cyan-600/5", color: "from-cyan-500 to-cyan-600" },
-                { label: "Avg Solve Rate", value: `${summary?.solveRate ?? "0.0"}%`, icon: Star, gradient: "from-emerald-500/10 to-emerald-600/5", color: "from-emerald-500 to-emerald-600" },
-                { label: "Top Performer", value: summary?.topPerformer ?? "\u2014", icon: Users, gradient: "from-amber-500/10 to-amber-600/5", color: "from-amber-500 to-amber-600" },
+                { label: "Stations", value: String(stations.length), icon: Shield, gradient: "from-primary/10 to-primary/5", color: "from-primary to-primary-light" },
+                { label: "Total Cases", value: (summary?.totalCases ?? 0).toLocaleString(), icon: TrendingUp, gradient: "from-accent-cyan/10 to-accent-cyan/5", color: "from-accent-cyan to-accent-cyan/80" },
+                { label: "Avg Solve Rate", value: `${summary?.solveRate ?? "0.0"}%`, icon: Star, gradient: "from-accent-emerald/10 to-accent-emerald/5", color: "from-accent-emerald to-accent-emerald/80" },
+                { label: "Top Performer", value: summary?.topPerformer ?? "\u2014", icon: Users, gradient: "from-accent-amber/10 to-accent-amber/5", color: "from-accent-amber to-accent-amber/80" },
               ].map((kpi, idx) => (
                 <motion.div key={kpi.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }}>
                   <Card variant="gradient" padding="lg" className="relative overflow-hidden group">
@@ -124,7 +124,7 @@ export default function PoliceStationPage() {
                 <StationRanking data={stations} subtitle={district ? `Stations in ${district}` : "Top stations by caseload"} />
               </div>
               <div className="lg:col-span-2">
-                <div className="rounded-2xl bg-[#0b1626] border border-[#1e3a5f]/30 p-5">
+                <div className="rounded-2xl bg-card border border-card-border p-5">
                   <h3 className="text-sm font-semibold text-foreground tracking-tight mb-4">Station Details</h3>
                   <div className="max-h-[400px] overflow-y-auto">
                     <Table>

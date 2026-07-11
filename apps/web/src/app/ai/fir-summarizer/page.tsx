@@ -82,7 +82,7 @@ export default function FIRSummarizerPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-xl font-bold text-foreground tracking-tight">FIR Summarizer</h1>
           <p className="text-sm text-muted-foreground/60 mt-1">AI-powered FIR analysis with keyword extraction and related-case lookup</p>
@@ -129,7 +129,7 @@ export default function FIRSummarizerPage() {
                           "w-full text-left p-3 rounded-xl border transition-all disabled:opacity-60",
                           selectedCrimeNo === c.crimeNo
                             ? "bg-primary/10 border-primary/30"
-                            : "bg-white/[0.02] border-white/5 hover:border-primary/20 hover:bg-white/5"
+                            : "bg-[#E7DDD1]/20 border-[#E7DDD1]/50 hover:border-primary/20 hover:bg-[#E7DDD1]/40"
                         )}
                       >
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -156,7 +156,7 @@ export default function FIRSummarizerPage() {
                     value={firText}
                     onChange={(e) => setFirText(e.target.value)}
                     placeholder="Paste FIR text here for AI analysis..."
-                    className="w-full h-40 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-foreground placeholder:text-muted outline-none focus:border-primary/30 transition-colors resize-none"
+                    className="w-full h-40 px-4 py-3 bg-[#FFFDF9] border border-[#E7DDD1] rounded-xl text-sm text-foreground placeholder:text-muted outline-none focus:border-primary/30 transition-colors resize-none"
                   />
                 </div>
                 <div className="flex items-center gap-3">

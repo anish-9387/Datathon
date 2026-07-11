@@ -17,7 +17,7 @@ export interface MOCluster {
   lastIncident: string
 }
 
-export const CLUSTER_COLORS = ["#3b82f6", "#f43f5e", "#f59e0b", "#10b981", "#06b6d4", "#8b5cf6", "#ec4899", "#14b8a6", "#eab308", "#6366f1"]
+export const CLUSTER_COLORS = ["#7B241C", "#C65D2E", "#2D8B55", "#E8A33A", "#C0392B", "#8B5E3C", "#A63D2F", "#6B6258", "#5C1A14", "#2D8B55"]
 
 export function clusterColor(index: number) {
   return CLUSTER_COLORS[index % CLUSTER_COLORS.length]
@@ -43,8 +43,8 @@ export function ClusterScatter({ clusters }: ClusterScatterProps) {
   return (
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-foreground mb-4">MO Cluster Visualization</h3>
-      <div className="relative bg-[#E7DDD1] rounded-xl border border-card-border overflow-hidden" style={{ height: 400 }}>
-        <div className="absolute inset-0 bg-grid opacity-20" />
+      <div className="relative bg-[#FBF6EE] rounded-xl border border-card-border overflow-hidden" style={{ height: 400 }}>
+        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(123,36,28,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(123,36,28,0.04) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
         <svg className="absolute inset-0 w-full h-full">
           {clusters.map((c, i) =>
             positions.map((_, j) => {
@@ -60,7 +60,7 @@ export function ClusterScatter({ clusters }: ClusterScatterProps) {
                   y1={`${positions[i].y}%`}
                   x2={`${positions[j].x}%`}
                   y2={`${positions[j].y}%`}
-                  stroke="rgba(59,130,246,0.08)"
+                  stroke="rgba(123,36,28,0.1)"
                   strokeWidth="1"
                 />
               )
@@ -93,7 +93,7 @@ export function ClusterScatter({ clusters }: ClusterScatterProps) {
                 </span>
               </div>
               <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 w-64">
-                <div className="glass-card p-3 text-xs">
+                <div className="bg-card border border-card-border rounded-xl p-3 text-xs shadow-lg">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-foreground">{cluster.pattern}</span>
                     <Badge variant={cluster.confidence >= 75 ? "success" : cluster.confidence >= 50 ? "info" : "warning"} size="sm">

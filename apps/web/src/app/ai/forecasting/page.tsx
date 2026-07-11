@@ -186,10 +186,10 @@ export default function ForecastingPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Avg Probability", value: `${stats!.avg.toFixed(1)}%`, icon: TrendingUp, color: "from-primary to-blue-500" },
-                { label: "High Confidence", value: stats!.highConfidence.toString(), icon: Brain, color: "from-emerald-500 to-emerald-600" },
-                { label: "Top Crime Type", value: stats!.topType, icon: BarChart3, color: "from-amber-500 to-amber-600" },
-                { label: "Risk Level", value: stats!.riskLevel, icon: TrendingUp, color: "from-rose-500 to-rose-600" },
+                { label: "Avg Probability", value: `${stats!.avg.toFixed(1)}%`, icon: TrendingUp, color: "from-primary to-primary-light" },
+                { label: "High Confidence", value: stats!.highConfidence.toString(), icon: Brain, color: "from-accent-emerald to-accent-emerald/80" },
+                { label: "Top Crime Type", value: stats!.topType, icon: BarChart3, color: "from-accent-amber to-accent-amber/80" },
+                { label: "Risk Level", value: stats!.riskLevel, icon: TrendingUp, color: "from-accent-rose to-accent-rose/80" },
               ].map((kpi, idx) => (
                 <motion.div key={kpi.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
                   <Card className="p-5">
@@ -212,15 +212,15 @@ export default function ForecastingPage() {
                     <AreaChart data={chartData}>
                       <defs>
                         <linearGradient id="forecastGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#7B241C" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#7B241C" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis domain={[0, 100]} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={{ background: "rgba(13,27,42,0.95)", border: "1px solid rgba(27,58,92,0.6)", borderRadius: 8, fontSize: 13 }} />
-                      <Area type="monotone" dataKey="probability" stroke="#3b82f6" strokeWidth={2} fill="url(#forecastGrad)" name="Avg Probability %" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(44,36,30,0.06)" />
+                      <XAxis dataKey="date" tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis domain={[0, 100]} tick={{ fill: "#6B6258", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ background: "#FFFDF9", border: "1px solid #E7DDD1", color: "#2C241E", borderRadius: 8, fontSize: 13 }} />
+                      <Area type="monotone" dataKey="probability" stroke="#7B241C" strokeWidth={2} fill="url(#forecastGrad)" name="Avg Probability %" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </ChartWrapper>
@@ -279,7 +279,7 @@ export default function ForecastingPage() {
         </motion.div>
 
         {live ? (
-          <div className="space-y-6">
+<div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <PredictionCard
                 prediction={{

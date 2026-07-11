@@ -57,7 +57,7 @@ export default function RepeatMOPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -123,16 +123,16 @@ export default function RepeatMOPage() {
                 </div>
                 <div className="space-y-4">
                   {([
-                    { label: "Critical", count: riskCounts.critical, color: "linear-gradient(90deg, #f43f5e, #fb7185)", variant: "danger" as const },
-                    { label: "High", count: riskCounts.high, color: "linear-gradient(90deg, #f59e0b, #fbbf24)", variant: "warning" as const },
-                    { label: "Medium", count: riskCounts.medium, color: "linear-gradient(90deg, #06b6d4, #22d3ee)", variant: "info" as const },
+                    { label: "Critical", count: riskCounts.critical, color: "linear-gradient(90deg, #C0392B, #E74C3C)", variant: "danger" as const },
+                    { label: "High", count: riskCounts.high, color: "linear-gradient(90deg, #E8A33A, #F0C27A)", variant: "warning" as const },
+                    { label: "Medium", count: riskCounts.medium, color: "linear-gradient(90deg, #C65D2E, #D4875E)", variant: "info" as const },
                   ]).map((r) => (
                     <div key={r.label}>
                       <div className="flex items-center justify-between text-xs mb-1">
                         <Badge variant={r.variant} size="sm">{r.label}</Badge>
                         <span className="font-medium text-foreground">{r.count}</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                         <motion.div
                           className="h-full rounded-full"
                           initial={{ width: 0 }}
@@ -164,7 +164,7 @@ export default function RepeatMOPage() {
                         <span className="text-muted-foreground truncate pr-2">{loc}</span>
                         <span className="font-medium text-foreground flex-shrink-0">{freq}</span>
                       </div>
-                      <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-1 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                         <motion.div
                           className="h-full rounded-full bg-gradient-to-r from-primary to-accent-cyan"
                           initial={{ width: 0 }}

@@ -41,40 +41,26 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden login-bg">
-      {/* Vidhana Soudha silhouettes */}
-      <div className="absolute bottom-0 left-0 opacity-[0.07] pointer-events-none">
-        <svg width="320" height="280" viewBox="0 0 320 280" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 280V180h20v-10h10v-10h10v-10h10V140h10v-10h10v-10h10v-10h10v-10h10v-10h10v-10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h-320z" fill="currentColor"/>
-          <path d="M60 180v-20h10v-10h10v-10h10v-10h10v-10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10H60z" fill="currentColor"/>
-          <rect x="80" y="100" width="8" height="80" fill="currentColor" opacity="0.5"/>
-          <rect x="100" y="90" width="8" height="90" fill="currentColor" opacity="0.5"/>
-          <rect x="120" y="80" width="8" height="100" fill="currentColor" opacity="0.5"/>
-          <rect x="140" y="70" width="8" height="110" fill="currentColor" opacity="0.5"/>
-          <rect x="160" y="60" width="12" height="120" fill="currentColor" opacity="0.5"/>
-          <rect x="180" y="70" width="8" height="110" fill="currentColor" opacity="0.5"/>
-          <rect x="200" y="80" width="8" height="100" fill="currentColor" opacity="0.5"/>
-          <rect x="220" y="90" width="8" height="90" fill="currentColor" opacity="0.5"/>
-          <rect x="240" y="100" width="8" height="80" fill="currentColor" opacity="0.5"/>
-        </svg>
+      {/* Golgumbaz watermark (left) */}
+      <div className="absolute left-0 opacity-[0.08] pointer-events-none z-0 hidden md:block" style={{ bottom: "110px" }}>
+        <img
+          src="/assets/golgumbaz.svg"
+          alt=""
+          className="h-[45vh] w-auto object-contain"
+        />
       </div>
-      <div className="absolute bottom-0 right-0 opacity-[0.07] pointer-events-none scale-x-[-1]">
-        <svg width="320" height="280" viewBox="0 0 320 280" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 280V180h20v-10h10v-10h10v-10h10V140h10v-10h10v-10h10v-10h10v-10h10v-10h10v-10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h-320z" fill="currentColor"/>
-          <path d="M60 180v-20h10v-10h10v-10h10v-10h10v-10h10v10h10v10h10v10h10v10h10v10h10v10h10v10h10v10H60z" fill="currentColor"/>
-          <rect x="80" y="100" width="8" height="80" fill="currentColor" opacity="0.5"/>
-          <rect x="100" y="90" width="8" height="90" fill="currentColor" opacity="0.5"/>
-          <rect x="120" y="80" width="8" height="100" fill="currentColor" opacity="0.5"/>
-          <rect x="140" y="70" width="8" height="110" fill="currentColor" opacity="0.5"/>
-          <rect x="160" y="60" width="12" height="120" fill="currentColor" opacity="0.5"/>
-          <rect x="180" y="70" width="8" height="110" fill="currentColor" opacity="0.5"/>
-          <rect x="200" y="80" width="8" height="100" fill="currentColor" opacity="0.5"/>
-          <rect x="220" y="90" width="8" height="90" fill="currentColor" opacity="0.5"/>
-          <rect x="240" y="100" width="8" height="80" fill="currentColor" opacity="0.5"/>
-        </svg>
+
+      {/* Hampi watermark (right) */}
+      <div className="absolute right-0 bottom-0 opacity-[0.08] pointer-events-none z-0 hidden md:block">
+        <img
+          src="/assets/hampi.svg"
+          alt=""
+          className="h-[70vh] w-auto object-contain"
+        />
       </div>
 
       {/* Bottom red/orange wave */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+      <div className="absolute left-0 right-0 pointer-events-none" style={{ bottom: "-10px" }}>
         <svg viewBox="0 0 1440 180" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
           <path d="M0 180V80C200 40 400 60 600 50C800 40 1000 20 1200 40C1350 55 1440 70 1440 70V180H0Z" fill="#c0392b"/>
           <path d="M0 180V110C200 70 400 90 600 80C800 70 1000 50 1200 70C1350 85 1440 100 1440 100V180H0Z" fill="#e74c3c"/>
