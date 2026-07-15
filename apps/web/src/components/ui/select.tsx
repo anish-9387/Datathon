@@ -2,7 +2,7 @@
 
 import { forwardRef, type SelectHTMLAttributes } from "react"
 import { cn } from "@/lib/utils"
-import { ChevronDown } from "lucide-react"
+
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
@@ -39,7 +39,9 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ))}
           </select>
           <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-            <ChevronDown className="w-4 h-4" />
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+            </svg>
           </div>
         </div>
         {error && <p className="mt-1.5 text-xs text-accent-rose">{error}</p>}

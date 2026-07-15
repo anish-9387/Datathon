@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
     const [detection, emerging] = await Promise.all([
       ml<DetectResult>("anomaly/detect", {
-        request: { fir_ids: firs.map((f) => f.fir_id), contamination },
+        request: { fir_ids: firs.map((f: { fir_id: string }) => f.fir_id), contamination },
         firs,
       }),
       ml<{ patterns: Array<Record<string, unknown>>; total: number }>(

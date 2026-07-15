@@ -63,7 +63,7 @@ export default function PoliceStationPage() {
 
   return (
     <AppShell>
-      <motion.div className="flex flex-col p-6" style={{ gap: "1.75rem" }} initial="hidden" animate="visible">
+      <motion.div className="flex flex-col" style={{ gap: "2rem" }} initial="hidden" animate="visible">
         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Police Station Drill-down</h1>
@@ -106,7 +106,7 @@ export default function PoliceStationPage() {
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-[0.08em]">{kpi.label}</span>
-                        <div className={cn("w-8 h-8 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-sm", kpi.color)}>
+                        <div className={cn("w-8 h-8 rounded-xl bg-linear-to-br flex items-center justify-center shadow-sm", kpi.color)}>
                           <kpi.icon className="w-4 h-4 text-white" />
                         </div>
                       </div>

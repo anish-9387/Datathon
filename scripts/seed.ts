@@ -684,6 +684,45 @@ function generateCaseNo(year: number, psCode: number, serial: number): string {
 async function main() {
   console.log("🌱 Starting seed...\n");
 
+  // ── 0. Clean up existing data (idempotent re-run) ──
+  console.log("Cleaning existing data...");
+  await prisma.criminalNetworkEdge.deleteMany();
+  await prisma.crimeCluster.deleteMany();
+  await prisma.crimeEmbedding.deleteMany();
+  await prisma.notification.deleteMany();
+  await prisma.auditLog.deleteMany();
+  await prisma.inv_OccuranceTime.deleteMany();
+  await prisma.chargesheetDetails.deleteMany();
+  await prisma.arrestSurrenderAccused.deleteMany();
+  await prisma.arrestSurrender.deleteMany();
+  await prisma.accused.deleteMany();
+  await prisma.victim.deleteMany();
+  await prisma.complainantDetails.deleteMany();
+  await prisma.actSectionAssociation.deleteMany();
+  await prisma.crimePrediction.deleteMany();
+  await prisma.caseMaster.deleteMany();
+  await prisma.crimeHeadActSection.deleteMany();
+  await prisma.section.deleteMany();
+  await prisma.act.deleteMany();
+  await prisma.crimeSubHead.deleteMany();
+  await prisma.crimeHead.deleteMany();
+  await prisma.caseCategory.deleteMany();
+  await prisma.gravityOffence.deleteMany();
+  await prisma.caseStatusMaster.deleteMany();
+  await prisma.court.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.employee.deleteMany();
+  await prisma.unit.deleteMany();
+  await prisma.unitType.deleteMany();
+  await prisma.rank.deleteMany();
+  await prisma.designation.deleteMany();
+  await prisma.occupationMaster.deleteMany();
+  await prisma.religionMaster.deleteMany();
+  await prisma.casteMaster.deleteMany();
+  await prisma.district.deleteMany();
+  await prisma.state.deleteMany();
+  console.log("  Done cleaning.\n");
+
   // ── 1. State ──
   console.log("Creating state...");
   const state = await prisma.state.create({
@@ -740,8 +779,6 @@ async function main() {
           StateID: state.StateID,
           DistrictID: dist.id,
           Active: true,
-          latitude: 12.9716 + (Math.random() - 0.5) * 0.5,
-          longitude: 77.5946 + (Math.random() - 0.5) * 0.5,
         },
       });
       units.push({ id: unit.UnitID, name: psName, districtId: dist.id, districtName: dist.name });
@@ -752,7 +789,11 @@ async function main() {
   // ── 6. Acts + Sections ──
   console.log("Creating acts and sections...");
   for (const act of ACTS) {
-    await prisma.act.create({ data: act });
+    await prisma.act.upsert({
+      where: { ActCode: act.ActCode },
+      update: {},
+      create: act,
+    });
   }
   for (const sec of SECTIONS) {
     await prisma.section.upsert({
@@ -879,8 +920,6 @@ async function main() {
         data: {
           FirstName: fullName,
           KGID: kgid,
-          email,
-          password: PASSWORD,
           RankID: rank.RankID,
           DesignationID: desig.DesignationID,
           DistrictID: unit.districtId,
@@ -1081,11 +1120,13 @@ async function main() {
           },
         });
 
-        // Link first accused to arrest
+        // Link first accused to arrest via junction table
         if (accusedIds.length > 0) {
-          await prisma.accused.update({
-            where: { AccusedMasterID: accusedIds[0] },
-            data: { ArrestSurrenderID: arrest.ArrestSurrenderID },
+          await prisma.arrestSurrenderAccused.create({
+            data: {
+              ArrestSurrenderID: arrest.ArrestSurrenderID,
+              AccusedMasterID: accusedIds[0],
+            },
           });
         }
       }
@@ -1192,7 +1233,34 @@ async function main() {
     });
   }
 
-  // ── 18. Audit Logs ──
+  // ── 18. Notifications ──
+  console.log("Creating sample notifications...");
+  const usersList = await prisma.user.findMany();
+  const notificationTypes = [
+    { type: "anomaly", titles: ["Anomaly Detected", "Suspicious Pattern Found", "Unusual Activity"], messages: ["Unusual crime pattern detected in Koramangala", "Repeat MO pattern identified in Whitefield", "Spike in burglary cases near MG Road"] },
+    { type: "match", titles: ["MO Match Found", "Similar Case Found", "Pattern Match"], messages: ["85% similarity with previous burglary case", "DNA signature matches case #2025-1042", "Modus operandi matches known criminal group"] },
+    { type: "forecast", titles: ["Forecast Updated", "Prediction Alert", "Risk Warning"], messages: ["High probability of theft in your area tomorrow", "Crime forecast shows elevated risk in East Zone", "Probability of chain snatching exceeds 70%"] },
+    { type: "case", titles: ["New Case Assigned", "Case Updated", "FIR Registered"], messages: ["FIR #2025-1042 assigned to your team", "New burglary case registered in Koramangala", "Case status updated to Under Investigation"] },
+  ];
+  for (const u of usersList) {
+    const notifCount = randomInt(2, 6);
+    for (let i = 0; i < notifCount; i++) {
+      const nt = pick(notificationTypes);
+      await prisma.notification.create({
+        data: {
+          userId: u.id,
+          title: pick(nt.titles),
+          message: pick(nt.messages),
+          type: nt.type,
+          read: Math.random() > 0.5,
+          createdAt: new Date(Date.now() - randomInt(0, 7 * 24 * 60 * 60 * 1000)),
+        },
+      });
+    }
+  }
+  console.log(`  Notifications created for ${usersList.length} users`);
+
+  // ── 19. Audit Logs ──
   console.log("Creating sample audit logs...");
   const actions = ["LOGIN", "LOGOUT", "CREATE_CASE", "UPDATE_CASE", "VIEW_CASE", "QUERY_ANALYTICS", "EXPORT_REPORT", "ASSIGN_INVESTIGATOR"];
   const resources = ["CaseMaster", "Report", "Dashboard", "Analytics", "User", "Settings"];

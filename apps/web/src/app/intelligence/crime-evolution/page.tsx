@@ -49,7 +49,7 @@ export default function CrimeEvolutionPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
+      <div className="flex flex-col" style={{ gap: "2rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

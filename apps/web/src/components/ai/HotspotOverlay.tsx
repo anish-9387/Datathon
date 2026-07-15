@@ -1,8 +1,9 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { useMemo } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { MapboxMap, type MapMarker } from "@/components/ui/MapboxMap"
 
 interface PredictedHotspot {
   id: string
@@ -29,111 +30,57 @@ interface HotspotOverlayProps {
 }
 
 export function HotspotOverlay({ predicted, historical, modelName }: HotspotOverlayProps) {
-  const allPoints = [
-    ...predicted.map((p) => ({ lat: p.lat, lng: p.lng })),
-    ...historical.map((h) => ({ lat: h.lat, lng: h.lng })),
-  ]
-  if (allPoints.length === 0) return null
+  const markers: MapMarker[] = useMemo(() => {
+    const predictedMarkers: MapMarker[] = predicted.map((p) => ({
+      id: `pred-${p.id}`,
+      lat: p.lat,
+      lng: p.lng,
+      label: `Predicted zone ${p.id}`,
+      risk: p.risk,
+      color: "#C0392B",
+      size: 20 + (p.incidents / 50) * 20,
+      detail: `Risk: ${p.risk}/100 · ~${p.incidents} incidents · Confidence: ${Math.round(p.confidence * 100)}%`,
+    }))
+    const historicalMarkers: MapMarker[] = historical.map((h) => ({
+      id: `hist-${h.id}`,
+      lat: h.lat,
+      lng: h.lng,
+      label: h.name ?? "Unknown",
+      risk: 0,
+      color: "#06b6d4",
+      size: 12 + (h.incidents / 100) * 12,
+      detail: `${h.district ?? "—"} · ${h.incidents} incidents`,
+    }))
+    return [...predictedMarkers, ...historicalMarkers]
+  }, [predicted, historical])
 
-  const minLat = Math.min(...allPoints.map((p) => p.lat))
-  const maxLat = Math.max(...allPoints.map((p) => p.lat))
-  const minLng = Math.min(...allPoints.map((p) => p.lng))
-  const maxLng = Math.max(...allPoints.map((p) => p.lng))
-  const latSpan = Math.max(maxLat - minLat, 0.01)
-  const lngSpan = Math.max(maxLng - minLng, 0.01)
+  const center = useMemo(() => {
+    if (markers.length === 0) return [77.6, 12.97] as [number, number]
+    const avgLat = markers.reduce((a, m) => a + m.lat, 0) / markers.length
+    const avgLng = markers.reduce((a, m) => a + m.lng, 0) / markers.length
+    return [avgLng, avgLat] as [number, number]
+  }, [markers])
 
-  const toX = (lng: number) => ((lng - minLng) / lngSpan) * 88 + 6
-  const toY = (lat: number) => ((maxLat - lat) / latSpan) * 84 + 8
-
-  const maxPredIncidents = Math.max(...predicted.map((p) => p.incidents), 1)
-  const maxHistIncidents = Math.max(...historical.map((h) => h.incidents), 1)
-  const maxRisk = Math.max(...predicted.map((p) => p.risk), 1)
+  if (markers.length === 0) return null
 
   return (
     <Card className="p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Hotspot Map Overlay</h3>
+          <h3 className="text-sm font-semibold text-foreground">Hotspot Map</h3>
           <p className="text-xs text-muted-foreground">
-            {modelName ? `${modelName} · ` : ""}predicted risk grid vs. historical incident clusters
+            {modelName ? `${modelName} · ` : ""}predicted risk zones vs. historical incident clusters
           </p>
         </div>
         <Badge variant="info" size="sm">
-          {predicted.length} predicted zones · {historical.length} historical clusters
+          {predicted.length} predicted · {historical.length} historical
         </Badge>
       </div>
-      <div className="relative bg-[#FBF6EE] rounded-xl border border-card-border overflow-hidden" style={{ height: 400 }}>
-        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(123,36,28,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(123,36,28,0.04) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-        {predicted.map((spot, idx) => {
-          const size = 22 + (spot.incidents / maxPredIncidents) * 34
-          const intensity = spot.risk / maxRisk
-          const opacity = 0.15 + intensity * 0.45
-
-          return (
-            <motion.div
-              key={spot.id}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: idx * 0.03, type: "spring" }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-              style={{ left: `${toX(spot.lng)}%`, top: `${toY(spot.lat)}%` }}
-            >
-              <div
-                className="rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-125"
-                style={{
-                  width: size,
-                  height: size,
-                  background: `radial-gradient(circle, rgba(192,57,43,${opacity}), rgba(192,57,43,0.05))`,
-                  border: `1.5px solid rgba(192,57,43,${0.25 + opacity * 0.5})`,
-                }}
-              >
-                <span className="text-[9px] font-bold text-white/90">{spot.risk}</span>
-              </div>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                <div className="bg-card border border-card-border rounded-xl px-3 py-2 text-xs whitespace-nowrap shadow-lg">
-                  <p className="font-medium text-foreground">Predicted zone {spot.id}</p>
-                  <p className="text-muted-foreground">Risk: {spot.risk}/100 · ~{spot.incidents} incidents</p>
-                  <p className="text-muted-foreground">Confidence: {Math.round(spot.confidence * 100)}%</p>
-                </div>
-              </div>
-            </motion.div>
-          )
-        })}
-        {historical.map((spot, idx) => {
-          const size = 10 + (spot.incidents / maxHistIncidents) * 10
-          return (
-            <motion.div
-              key={spot.id}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.4 + idx * 0.05, type: "spring" }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer z-10"
-              style={{ left: `${toX(spot.lng)}%`, top: `${toY(spot.lat)}%` }}
-            >
-              <div
-                className="rounded-full border-2 border-cyan-400/70 bg-cyan-400/20 transition-all duration-300 group-hover:scale-125"
-                style={{ width: size, height: size }}
-              />
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                <div className="bg-card border border-card-border rounded-xl px-3 py-2 text-xs whitespace-nowrap shadow-lg">
-                  <p className="font-medium text-foreground">{spot.name ?? "Unknown station"}</p>
-                  <p className="text-muted-foreground">{spot.district ?? "—"} · {spot.incidents} incidents</p>
-                </div>
-              </div>
-            </motion.div>
-          )
-        })}
-        <div className="absolute bottom-4 left-4 flex items-center gap-3 text-[11px] text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-rose-500/30 border border-rose-500/50" />
-            <span>Predicted risk zone</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-cyan-400/20 border border-cyan-400/70" />
-            <span>Historical cluster</span>
-          </div>
-        </div>
-      </div>
+      <MapboxMap
+        markers={markers}
+        center={center}
+        zoom={11}
+      />
     </Card>
   )
 }

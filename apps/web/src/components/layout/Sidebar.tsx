@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   LayoutDashboard, GitBranch, Network, Brain, ChevronLeft, ChevronRight,
   Map, Shield, BarChart3, TrendingUp, AlertTriangle, Search, MessageSquare,
-  FileText, Users, User, LogOut, Command, type LucideIcon
+  FileText, Users, User, LogOut, type LucideIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
@@ -41,6 +41,7 @@ const navGroups: NavGroup[] = [
       { label: "MO Clustering", href: "/intelligence/mo-clustering", icon: BarChart3 },
       { label: "Crime Evolution", href: "/intelligence/crime-evolution", icon: TrendingUp },
       { label: "Repeat MO", href: "/intelligence/repeat-mo", icon: AlertTriangle },
+      { label: "Socio-Economic", href: "/intelligence/socio-economic", icon: BarChart3, badge: "New" },
     ],
   },
   {
@@ -165,35 +166,18 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
         ))}
       </nav>
 
-      <div className={cn("px-3 py-4 border-t border-card-border", collapsed && "px-2")}>
-        <div className={cn(
-          "flex items-center gap-3 px-3 py-2.5 rounded-xl bg-card border border-card-border",
-          collapsed && "justify-center"
-        )}>
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
-            SP
-          </div>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">Superintendent</p>
-              <p className="text-[11px] text-muted-foreground truncate">Admin Access</p>
-            </div>
+      <div className={cn("px-3 py-4 border-t border-card-border", collapsed && "flex justify-center")}>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className={cn(
+            "flex items-center gap-2 px-3 py-2 rounded-xl text-muted-foreground hover:text-accent-rose hover:bg-accent-rose/5 transition-colors",
+            collapsed ? "justify-center" : "w-full"
           )}
-          {!collapsed && (
-            <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              className="p-1.5 rounded-lg hover:bg-accent-rose/5 text-muted-foreground hover:text-accent-rose transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        {!collapsed && (
-          <div className="mt-2 px-3 py-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
-            <Command className="w-3 h-3" />
-            <span>Cmd+K</span>
-          </div>
-        )}
+          title="Sign out"
+        >
+          <LogOut className="w-4 h-4" />
+          {!collapsed && <span className="text-sm">Sign out</span>}
+        </button>
       </div>
     </div>
   )

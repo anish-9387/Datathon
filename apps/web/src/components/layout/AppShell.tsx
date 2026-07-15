@@ -3,11 +3,9 @@
 import { useState, type ReactNode } from "react"
 import { Sidebar } from "./Sidebar"
 import { Header } from "./Header"
-import { CommandPalette } from "@/components/ui/command-palette"
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false)
 
   return (
     <div className="flex h-screen bg-background">
@@ -16,15 +14,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header onCmdK={() => setCmdPaletteOpen(true)} />
+        <Header />
         <main className="flex-1 overflow-y-auto bg-dot">
           <div className="relative z-10 p-6 lg:p-8 max-w-[1600px] mx-auto">{children}</div>
         </main>
       </div>
-      <CommandPalette
-        open={cmdPaletteOpen}
-        onClose={() => setCmdPaletteOpen(false)}
-      />
     </div>
   )
 }

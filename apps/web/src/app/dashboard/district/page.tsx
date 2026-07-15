@@ -74,7 +74,7 @@ export default function DistrictPage() {
 
   return (
     <AppShell>
-      <motion.div className="flex flex-col p-6" style={{ gap: "1.75rem" }} initial="hidden" animate="visible">
+      <motion.div className="flex flex-col" style={{ gap: "2rem" }} initial="hidden" animate="visible">
         <motion.div variants={itemVariants}>
           <h1 className="text-xl font-bold text-foreground tracking-tight">District Analytics</h1>
           <p className="text-sm text-muted-foreground/60 mt-1">Crime statistics across Karnataka districts</p>

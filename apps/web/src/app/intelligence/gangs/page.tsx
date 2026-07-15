@@ -44,7 +44,7 @@ export default function GangsPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
+      <div className="flex flex-col" style={{ gap: "2rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -91,7 +91,7 @@ export default function GangsPage() {
                   <Card className="p-5">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{kpi.label}</span>
-                      <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center", kpi.color)}>
+                      <div className={cn("w-9 h-9 rounded-xl bg-linear-to-br flex items-center justify-center", kpi.color)}>
                         <kpi.icon className="w-4.5 h-4.5 text-white" />
                       </div>
                     </div>
@@ -108,7 +108,7 @@ export default function GangsPage() {
                   <h3 className="text-sm font-semibold text-foreground">Gang Intelligence</h3>
                   <span className="text-[11px] text-muted-foreground">{gangs.length} networks · corpus {data.corpusSize}</span>
                 </div>
-                <div className="max-h-[440px] overflow-y-auto">
+                <div className="max-h-110 overflow-y-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -129,7 +129,7 @@ export default function GangsPage() {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="w-16 h-1.5 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
-                                <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent-cyan" style={{ width: `${g.influence}%` }} />
+                                <div className="h-full rounded-full bg-linear-to-r from-primary to-accent-cyan" style={{ width: `${g.influence}%` }} />
                               </div>
                               <span className="text-xs text-muted-foreground">{g.influence}%</span>
                             </div>

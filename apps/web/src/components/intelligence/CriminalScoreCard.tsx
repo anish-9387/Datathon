@@ -35,7 +35,7 @@ export function CriminalScoreCard({ criminals }: CriminalScoreCardProps) {
             transition={{ delay: idx * 0.1 }}
             className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-accent-cyan flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
               {idx + 1}
             </div>
             <div className="flex-1 min-w-0">
@@ -59,7 +59,7 @@ export function CriminalScoreCard({ criminals }: CriminalScoreCardProps) {
                   </div>
                   <div className="h-1 rounded-full bg-white/5 overflow-hidden">
                     <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-primary to-accent-cyan"
+                      className="h-full rounded-full bg-linear-to-r from-primary to-accent-cyan"
                       initial={{ width: 0 }}
                       animate={{ width: `${c.influence}%` }}
                       transition={{ duration: 1, delay: idx * 0.15 }}

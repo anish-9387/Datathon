@@ -19,7 +19,7 @@ export function EvolutionTimeline({ data }: EvolutionTimelineProps) {
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-foreground mb-6">Crime Evolution Timeline</h3>
       <div className="relative">
-        <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-accent-cyan to-accent-rose" />
+        <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-linear-to-b from-primary via-accent-cyan to-accent-rose" />
         <div className="space-y-8">
           {data.map((phase, idx) => (
             <motion.div

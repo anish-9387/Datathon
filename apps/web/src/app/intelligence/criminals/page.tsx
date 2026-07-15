@@ -50,7 +50,7 @@ export default function CriminalsPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -109,8 +109,8 @@ export default function CriminalsPage() {
                   <Card className="p-5">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{kpi.label}</span>
-                      <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center", kpi.color)}>
-                        <kpi.icon className="w-4.5 h-4.5 text-white" />
+                      <div className={cn("w-9 h-9 rounded-xl bg-linear-to-br flex items-center justify-center", kpi.color)}>
+                        <kpi.icon className="w-[18px] h-[18px] text-white" />
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
@@ -121,7 +121,7 @@ export default function CriminalsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CriminalScoreCard criminals={criminals.slice(0, 6)} />
-<div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
+<div className="flex flex-col" style={{ gap: "2rem" }}>
                 <ChartWrapper title="Influence Distribution" subtitle={`Top network influence scores · corpus ${data.corpusSize}`}>
                   <div style={{ height: 300 }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -174,7 +174,7 @@ export default function CriminalsPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className="w-16 h-1.5 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
-                              <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent-cyan" style={{ width: `${c.influence}%` }} />
+                              <div className="h-full rounded-full bg-linear-to-r from-primary to-accent-cyan" style={{ width: `${c.influence}%` }} />
                             </div>
                             <span className="text-xs text-muted-foreground">{c.influence}%</span>
                           </div>

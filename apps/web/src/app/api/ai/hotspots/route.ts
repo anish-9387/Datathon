@@ -19,31 +19,31 @@ export async function GET(request: Request) {
   const crimeType = searchParams.get("type") ?? ""
 
   try {
-    const [predicted, historical] = await Promise.all([
-      ml<HotspotResult>("forecasting/hotspot", {
-        district,
-        crime_type: crimeType,
-        grid_size: 50,
-      }),
-      prisma.$queryRaw<
+    const historicalRows =
+      (await prisma.$queryRaw<
         Array<{ lat: number; lng: number; incidents: number; name: string | null; district: string | null }>
       >`
-        SELECT round(latitude::numeric, 2)::float AS lat,
-               round(longitude::numeric, 2)::float AS lng,
-               count(*)::int AS incidents,
-               mode() WITHIN GROUP (ORDER BY police_station) AS name,
-               mode() WITHIN GROUP (ORDER BY district) AS district
-        FROM fir
-        WHERE latitude IS NOT NULL
-          AND (${district}::text = '' OR district ILIKE ${district})
-        GROUP BY 1, 2
-        ORDER BY incidents DESC
-        LIMIT 15
-      `,
-    ])
+      SELECT round(latitude::numeric, 2)::float AS lat,
+             round(longitude::numeric, 2)::float AS lng,
+             count(*)::int AS incidents,
+             mode() WITHIN GROUP (ORDER BY police_station) AS name,
+             mode() WITHIN GROUP (ORDER BY district) AS district
+      FROM fir
+      WHERE latitude IS NOT NULL
+        AND (${district}::text = '' OR district ILIKE ${district})
+      GROUP BY 1, 2
+      ORDER BY incidents DESC
+      LIMIT 15
+    `) as Array<{ lat: number; lng: number; incidents: number; name: string | null; district: string | null }>
+
+    const predicted = await ml<HotspotResult>("forecasting/hotspot", {
+      district,
+      crime_type: crimeType,
+      grid_size: 50,
+    })
 
     return NextResponse.json({
-      predicted: predicted.hotspots.map((h, i) => ({
+      predicted: predicted.hotspots.map((h: { latitude: number; longitude: number; risk_score: number; predicted_crimes: number; confidence: number }, i: number) => ({
         id: `P-${String(i + 1).padStart(3, "0")}`,
         lat: h.latitude,
         lng: h.longitude,
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
         incidents: h.predicted_crimes,
         confidence: h.confidence,
       })),
-      historical: historical.map((h, i) => ({
+      historical: historicalRows.map((h, i) => ({
         id: `H-${String(i + 1).padStart(3, "0")}`,
         name: h.name,
         district: h.district,

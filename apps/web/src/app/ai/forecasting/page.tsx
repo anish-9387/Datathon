@@ -139,7 +139,7 @@ export default function ForecastingPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Crime Forecasting</h1>
@@ -195,8 +195,8 @@ export default function ForecastingPage() {
                   <Card className="p-5">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{kpi.label}</span>
-                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${kpi.color} flex items-center justify-center`}>
-                        <kpi.icon className="w-4.5 h-4.5 text-white" />
+                      <div className={`w-9 h-9 rounded-xl bg-linear-to-br ${kpi.color} flex items-center justify-center`}>
+                        <kpi.icon className="w-[18px] h-[18px] text-white" />
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-foreground truncate">{kpi.value}</div>
@@ -240,7 +240,7 @@ export default function ForecastingPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <Card className="p-5">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-primary to-accent-cyan flex items-center justify-center">
                 <Zap className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -279,7 +279,7 @@ export default function ForecastingPage() {
         </motion.div>
 
         {live ? (
-<div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
+<div className="flex flex-col" style={{ gap: "2rem" }}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <PredictionCard
                 prediction={{

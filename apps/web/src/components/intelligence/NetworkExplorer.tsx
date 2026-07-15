@@ -39,22 +39,8 @@ export function NetworkExplorer({ nodes, onSelectNode, selectedNodeId }: Network
             className="w-full pl-9 pr-4 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted outline-none focus:border-primary/30 transition-colors"
           />
         </div>
-        <Select
-          options={[
-            { value: "all", label: "All Types" },
-            { value: "case", label: "Cases" },
-            { value: "person", label: "Persons" },
-            { value: "location", label: "Locations" },
-            { value: "weapon", label: "Weapons" },
-            { value: "district", label: "Districts" },
-            { value: "crime_type", label: "Crime Types" },
-          ]}
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="w-36"
-        />
       </div>
-      <div className="space-y-1 max-h-[400px] overflow-y-auto">
+      <div className="space-y-1 max-h-100 overflow-y-auto">
         {filteredNodes.map((node) => (
           <button
             key={node.id}
@@ -64,7 +50,7 @@ export function NetworkExplorer({ nodes, onSelectNode, selectedNodeId }: Network
             }`}
           >
             <div
-              className="w-2 h-2 rounded-full flex-shrink-0"
+              className="w-2 h-2 rounded-full shrink-0"
               style={{ background: NODE_COLORS[node.type] || "#64748b" }}
             />
             <span className="flex-1 text-left truncate">{node.label}</span>

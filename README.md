@@ -60,13 +60,14 @@ Log in at http://localhost:3000/login — all seeded users share the password `P
 
 | Page | Backing |
 |---|---|
-| `/dashboard` (+district, station) | Prisma aggregations over seeded FIRs |
+| `/dashboard` (+district, station) | Prisma aggregations over seeded FIRs + Emerging Trend Alerts |
 | `/intelligence/graph` | NetworkX entity graph (cases, persons, locations, weapons) |
 | `/intelligence/gangs` | Louvain community detection on person co-occurrence projection |
 | `/intelligence/criminals` | PageRank influence + betweenness centrality |
 | `/intelligence/crime-dna` | Sentence-transformer FIR embeddings + MO fingerprint similarity |
 | `/intelligence/mo-clustering`, `/repeat-mo` | MO clustering (DBSCAN-style) — serial-pattern detection |
 | `/intelligence/crime-evolution` | Monthly severity/dominant-crime escalation from Prisma |
+| `/intelligence/socio-economic` | Crime-urbanization-literacy correlation overlay with scatter plots |
 | `/ai/assistant` | NL→SQL over the read-only `fir` Postgres view, executed live |
 | `/ai/forecasting` | Stored predictions + live model calls with factor explanations |
 | `/ai/hotspot-detection` | Model-predicted grid hotspots + real historical coordinate clusters |

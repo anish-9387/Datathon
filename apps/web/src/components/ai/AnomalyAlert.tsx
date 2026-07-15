@@ -57,7 +57,7 @@ export function AnomalyAlert({ anomaly, index }: AnomalyAlertProps) {
       <Card className="p-4 relative overflow-hidden group hover:border-accent-rose/30">
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity bg-accent-rose" />
         <div className="relative z-10 flex items-start gap-4">
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradientFor(anomaly.type ?? "unknown")} flex items-center justify-center flex-shrink-0`}>
+          <div className={`w-10 h-10 rounded-xl bg-linear-to-br ${gradientFor(anomaly.type ?? "unknown")} flex items-center justify-center flex-shrink-0`}>
             <AlertTriangle className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">

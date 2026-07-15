@@ -13,8 +13,21 @@ import { CrimeDistribution } from "@/components/visualizations/CrimeDistribution
 import { StationRanking } from "@/components/visualizations/StationRanking"
 import { StatusDashboard } from "@/components/visualizations/StatusDashboard"
 import { HeatMap } from "@/components/visualizations/HeatMap"
+import { TrendAlert } from "@/components/visualizations/TrendAlert"
 import { useApi } from "@/hooks/useApi"
 import { cn } from "@/lib/utils"
+
+interface TrendItem {
+  type: string
+  recentCount: number
+  historicalAvg: number
+  spikeRatio: number
+  severity: "critical" | "elevated" | "normal"
+}
+
+interface TrendResponse {
+  trends: TrendItem[]
+}
 
 interface DashboardStats {
   totalCases: number
@@ -93,6 +106,7 @@ export default function DashboardPage() {
   const timeline = useApi<TimelinePoint[]>("/api/cases/timeline?days=365")
   const stations = useApi<Station[]>("/api/police-stations?limit=8")
   const districts = useApi<District[]>("/api/districts")
+  const trends = useApi<TrendResponse>("/api/trends")
 
   const weeklyTimeline = useMemo(
     () => (timeline.data ? aggregateWeekly(timeline.data) : []),
@@ -128,7 +142,7 @@ export default function DashboardPage() {
   if (stats.loading) {
     return (
       <AppShell>
-        <motion.div className="flex flex-col" style={{ gap: "1.75rem" }} variants={containerVariants} initial="hidden" animate="visible">
+        <motion.div className="flex flex-col" style={{ gap: "2rem" }} variants={containerVariants} initial="hidden" animate="visible">
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Intelligence Dashboard</h1>
             <p className="text-sm text-muted-foreground mt-1">Loading real-time data...</p>
@@ -146,7 +160,7 @@ export default function DashboardPage() {
   if (stats.error || !stats.data) {
     return (
       <AppShell>
-        <div className="flex flex-col" style={{ gap: "1.75rem" }}>
+        <div className="flex flex-col" style={{ gap: "2rem" }}>
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Intelligence Dashboard</h1>
             <p className="text-sm text-muted-foreground mt-1">Real-time crime analytics for Karnataka Police</p>
@@ -161,7 +175,7 @@ export default function DashboardPage() {
     <AppShell>
       <motion.div
         className="flex flex-col"
-        style={{ gap: "1.75rem" }}
+        style={{ gap: "2rem" }}
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -171,9 +185,7 @@ export default function DashboardPage() {
             <h1 className="text-xl font-bold text-foreground tracking-tight">Intelligence Dashboard</h1>
             <p className="text-sm text-muted-foreground mt-1">Real-time crime analytics for Karnataka Police</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="success" size="sm" dot>Live</Badge>
-          </div>
+
         </motion.div>
 
         <motion.div
@@ -195,7 +207,7 @@ export default function DashboardPage() {
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-[0.08em]">{kpi.label}</span>
-                    <div className={cn("w-8 h-8 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-sm", kpi.color)}>
+                    <div className={cn("w-8 h-8 rounded-xl bg-linear-to-br flex items-center justify-center shadow-sm", kpi.color)}>
                       <kpi.icon className="w-4 h-4 text-white" />
                     </div>
                   </div>
@@ -255,16 +267,25 @@ export default function DashboardPage() {
           <StatusDashboard data={stats.data.byStatus} />
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          {districts.loading ? (
-            <ChartSkeleton />
-          ) : districts.error ? (
-            <ErrorCard message={districts.error} onRetry={districts.refresh} title="Failed to load district map" />
-          ) : (
-            <HeatMap
-              districts={(districts.data || []).map((d) => ({ district: d.name, cases: d.cases, solved: d.solved }))}
-            />
-          )}
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            {districts.loading ? (
+              <ChartSkeleton />
+            ) : districts.error ? (
+              <ErrorCard message={districts.error} onRetry={districts.refresh} title="Failed to load district map" />
+            ) : (
+              <HeatMap
+                districts={(districts.data || []).map((d) => ({ district: d.name, cases: d.cases, solved: d.solved }))}
+              />
+            )}
+          </div>
+          <div>
+            {trends.loading ? (
+              <ChartSkeleton />
+            ) : trends.error || !trends.data ? null : (
+              <TrendAlert trends={trends.data.trends} />
+            )}
+          </div>
         </motion.div>
       </motion.div>
     </AppShell>

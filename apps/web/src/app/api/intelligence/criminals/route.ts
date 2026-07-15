@@ -41,7 +41,11 @@ export async function GET(request: Request) {
         caseMaster: {
           select: { CrimeRegisteredDate: true, IncidentFromDate: true },
         },
-        arrestSurrender: { select: { ArrestSurrenderDate: true } },
+        arrestLinks: {
+          include: {
+            arrestSurrender: { select: { ArrestSurrenderDate: true } },
+          },
+        },
       },
     })
     const byName = new Map<string, typeof accusedRows>()
@@ -57,7 +61,7 @@ export async function GET(request: Request) {
         .filter(Boolean)
         .sort((a, b) => a!.getTime() - b!.getTime())
       const arrests = rows
-        .map((r) => r.arrestSurrender?.ArrestSurrenderDate)
+        .flatMap((r) => r.arrestLinks.map((l) => l.arrestSurrender?.ArrestSurrenderDate))
         .filter((d): d is Date => Boolean(d))
         .sort((a, b) => a.getTime() - b.getTime())
       return {

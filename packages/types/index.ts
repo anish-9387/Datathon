@@ -68,7 +68,11 @@ export interface Accused {
   AgeYear: number | null;
   GenderID: number | null;
   PersonID: string | null;
-  ArrestSurrenderID: number | null;
+}
+
+export interface ArrestSurrenderAccused {
+  ArrestSurrenderID: number;
+  AccusedMasterID: number;
 }
 
 export interface ActSectionAssociation {
@@ -172,8 +176,6 @@ export interface Unit {
   StateID: number | null;
   DistrictID: number | null;
   Active: boolean | null;
-  latitude: number | null;
-  longitude: number | null;
 }
 
 export interface UnitType {
@@ -197,8 +199,6 @@ export interface Employee {
   BloodGroupID: number | null;
   PhysicallyChallenged: boolean | null;
   AppointmentDate: Date | null;
-  email: string | null;
-  password: string | null;
 }
 
 export interface Rank {
@@ -303,6 +303,22 @@ export const GenderMap = { Male: 1, Female: 2, Other: 3 } as const;
 export const BloodGroupMap = [
   "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-",
 ] as const;
+
+export interface GenderMaster {
+  GenderID: number;
+  GenderName: string | null;
+  GenderCode: string | null;
+}
+
+export interface BloodGroupMaster {
+  BloodGroupID: number;
+  BloodGroupName: string | null;
+}
+
+export interface ArrestSurrenderTypeMaster {
+  ArrestSurrenderTypeID: number;
+  TypeName: string | null;
+}
 
 export type ChargesheetType = "A" | "B" | "C";
 

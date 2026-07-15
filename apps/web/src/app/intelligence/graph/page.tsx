@@ -58,7 +58,7 @@ export default function GraphPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
+      <div className="flex flex-col" style={{ gap: "2rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -92,9 +92,9 @@ export default function GraphPage() {
             {[
               { label: "Nodes", value: stats.total_nodes },
               { label: "Edges", value: stats.total_edges },
-              { label: "Density", value: stats.density.toFixed(4) },
+              { label: "Density", value: (stats.density ?? 0).toFixed(4) },
               { label: "Components", value: stats.connected_components },
-              { label: "Avg Degree", value: stats.avg_degree.toFixed(2) },
+              { label: "Avg Degree", value: (stats.avg_degree ?? 0).toFixed(2) },
             ].map((s) => (
               <Card key={s.label} className="p-4">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{s.label}</p>

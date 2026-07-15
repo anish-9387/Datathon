@@ -56,7 +56,7 @@ export default function CrimeDNAPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-xl font-bold text-foreground tracking-tight">Crime DNA</h1>
           <p className="text-sm text-muted-foreground/60 mt-1">Visual fingerprint analysis for modus operandi matching</p>

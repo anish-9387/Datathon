@@ -57,7 +57,7 @@ export default function RepeatMOPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
+      <div className="flex flex-col" style={{ gap: "2rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -166,7 +166,7 @@ export default function RepeatMOPage() {
                       </div>
                       <div className="h-1 rounded-full bg-[#E7DDD1]/40 overflow-hidden">
                         <motion.div
-                          className="h-full rounded-full bg-gradient-to-r from-primary to-accent-cyan"
+                          className="h-full rounded-full bg-linear-to-r from-primary to-accent-cyan"
                           initial={{ width: 0 }}
                           animate={{ width: `${(freq / maxLocFreq) * 100}%` }}
                           transition={{ duration: 0.8, delay: idx * 0.05 }}

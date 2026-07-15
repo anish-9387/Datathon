@@ -64,7 +64,7 @@ export default function HotspotDetectionPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col p-6" style={{ gap: "1.75rem" }}>
+      <div className="flex flex-col" style={{ gap: "2rem" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Hotspot Detection</h1>
@@ -120,8 +120,8 @@ export default function HotspotDetectionPage() {
                   <Card className="p-5">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{kpi.label}</span>
-                      <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center", kpi.color)}>
-                        <kpi.icon className="w-4.5 h-4.5 text-white" />
+                      <div className={cn("w-9 h-9 rounded-xl bg-linear-to-br flex items-center justify-center", kpi.color)}>
+                        <kpi.icon className="w-[18px] h-[18px] text-white" />
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-foreground">{kpi.value}</div>

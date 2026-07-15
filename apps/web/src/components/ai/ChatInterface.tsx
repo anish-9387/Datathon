@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Send, Bot, User, Sparkles, RefreshCw, AlertTriangle, Database } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Send, Bot, User, Sparkles, RefreshCw, AlertTriangle, Database, BarChart3, FileText, Lightbulb } from "lucide-react"
+
 import { postApi } from "@/hooks/useApi"
 
 interface AssistantResponse {
@@ -13,6 +13,9 @@ interface AssistantResponse {
   rowCount?: number
   note?: string
   error?: string
+  followUps?: string[]
+  mode?: "query" | "analysis" | "insight"
+  summary?: string
 }
 
 interface Message {
@@ -23,13 +26,6 @@ interface Message {
   error?: string
   timestamp: Date
 }
-
-const suggestions = [
-  "show robbery cases in Bengaluru",
-  "theft cases after 9 pm",
-  "recent murder cases",
-  "top 10 cases with knife",
-]
 
 const PREFERRED_COLUMNS = ["fir_no", "crime_type", "district", "police_station", "date_time", "status", "weapon"]
 const HIDDEN_COLUMNS = ["id", "fir_text", "latitude", "longitude", "crime_group"]
@@ -64,12 +60,12 @@ function ResultTable({ rows }: { rows: Record<string, unknown>[] }) {
   if (columns.length === 0) return null
 
   return (
-    <div className="mt-3 rounded-lg border border-white/[0.06] overflow-x-auto">
+    <div className="mt-3 rounded-xl border border-card-border overflow-x-auto">
       <table className="w-full text-xs">
         <thead>
-          <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+          <tr className="border-b border-card-border bg-white/[0.02]">
             {columns.map((col) => (
-              <th key={col} className="px-3 py-2 text-left font-medium text-muted-foreground/70 whitespace-nowrap">
+              <th key={col} className="px-3 py-2.5 text-left font-medium text-muted-foreground/70 whitespace-nowrap">
                 {columnLabel(col)}
               </th>
             ))}
@@ -77,7 +73,7 @@ function ResultTable({ rows }: { rows: Record<string, unknown>[] }) {
         </thead>
         <tbody>
           {visible.map((row, idx) => (
-            <tr key={idx} className="border-b border-white/[0.03] last:border-0">
+            <tr key={idx} className="border-b border-card-border last:border-0 hover:bg-white/[0.01]">
               {columns.map((col) => (
                 <td key={col} className="px-3 py-2 text-foreground/80 whitespace-nowrap max-w-[220px] truncate">
                   {formatCell(col, row[col])}
@@ -93,20 +89,34 @@ function ResultTable({ rows }: { rows: Record<string, unknown>[] }) {
 
 function AssistantReply({ response }: { response: AssistantResponse }) {
   const rows = response.rows ?? []
+  const followUps = response.followUps ?? []
+
   return (
     <div className="space-y-3">
-      {response.explanation && (
+      {response.summary && (
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-accent-emerald/5 border border-accent-emerald/15">
+          <Lightbulb className="w-4 h-4 text-accent-emerald flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-foreground/90 leading-relaxed">{response.summary}</p>
+        </div>
+      )}
+      {response.explanation && !response.summary && (
         <p className="text-sm text-foreground/90 leading-relaxed">{response.explanation}</p>
       )}
+      {response.mode === "analysis" && response.summary && (
+        <div className="flex items-center gap-1.5 text-[11px] text-accent-emerald/70">
+          <BarChart3 className="w-3 h-3" />
+          Analysis mode
+        </div>
+      )}
       {response.sql && (
-        <div className="rounded-lg bg-black/30 border border-white/[0.06] overflow-x-auto">
-          <div className="flex items-center gap-1.5 px-3 pt-2 text-[10px] uppercase tracking-wider text-muted-foreground/50">
+        <div className="rounded-xl bg-black/30 border border-white/[0.06] overflow-x-auto">
+          <div className="flex items-center gap-1.5 px-3 pt-2.5 text-[10px] uppercase tracking-wider text-muted-foreground/50">
             <Database className="w-3 h-3" /> Generated SQL
           </div>
           <pre className="px-3 py-2 text-xs text-accent-cyan/90 font-mono whitespace-pre-wrap">{response.sql}</pre>
         </div>
       )}
-      {rows.length > 0 ? (
+      {rows.length > 0 && (
         <>
           <ResultTable rows={rows} />
           <p className="text-[11px] text-muted-foreground/50">
@@ -114,8 +124,9 @@ function AssistantReply({ response }: { response: AssistantResponse }) {
             {rows.length > 10 ? " \u00B7 showing first 10" : ""}
           </p>
         </>
-      ) : (
-        !response.error && <p className="text-xs text-muted-foreground/50">No matching records found.</p>
+      )}
+      {rows.length === 0 && !response.error && !response.summary && (
+        <p className="text-xs text-muted-foreground/50">No matching records found.</p>
       )}
       {response.note && (
         <p className="text-[11px] text-amber-400/80 bg-amber-500/5 border border-amber-500/12 rounded-lg px-3 py-2">
@@ -123,10 +134,28 @@ function AssistantReply({ response }: { response: AssistantResponse }) {
         </p>
       )}
       {response.error && (
-        <p className="text-[11px] text-accent-rose bg-accent-rose/5 border border-accent-rose/15 rounded-lg px-3 py-2 flex items-start gap-1.5">
+        <p className="text-[11px] text-accent-rose bg-accent-rose/5 border border-accent-rose/15 rounded-xl px-3 py-2 flex items-start gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
           {response.error}
         </p>
+      )}
+      {followUps.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-card-border">
+          <p className="text-[11px] text-muted-foreground mb-2 flex items-center gap-1">
+            <Sparkles className="w-3 h-3" />
+            Suggested follow-ups
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {followUps.map((q, idx) => (
+              <span
+                key={idx}
+                className="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-card-border text-[11px] text-muted-foreground cursor-pointer hover:text-foreground hover:bg-card-hover transition-colors"
+              >
+                {q}
+              </span>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )
@@ -138,12 +167,13 @@ export function ChatInterface() {
       id: "welcome",
       role: "assistant",
       content:
-        "Hello, I'm your AI Investigation Assistant. Ask me a question in plain English and I'll translate it to SQL, run it against the FIR database, and show you the results. Try one of the suggested queries below.",
+        "Hello! I'm your AI Investigation Assistant. I can help you explore crime data, run SQL queries, analyze patterns, and extract insights. Ask me anything about the FIR database.",
       timestamp: new Date(),
     },
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [context, setContext] = useState<string[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -167,7 +197,9 @@ export function ChatInterface() {
     try {
       const response = await postApi<AssistantResponse>("/api/ai/assistant", {
         query: content.trim(),
+        context: context.slice(-5),
       })
+      setContext((prev) => [...prev, content.trim()])
       setMessages((prev) => [
         ...prev,
         { id: `${Date.now()}-a`, role: "assistant", response, timestamp: new Date() },
@@ -178,7 +210,7 @@ export function ChatInterface() {
         {
           id: `${Date.now()}-e`,
           role: "assistant",
-          error: e instanceof Error ? e.message : "Something went wrong while querying the database.",
+          error: e instanceof Error ? e.message : "Something went wrong while processing your request.",
           timestamp: new Date(),
         },
       ])
@@ -187,19 +219,30 @@ export function ChatInterface() {
     }
   }
 
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSend(suggestion)
+  }
+
+  const initialSuggestions = [
+    "Show robbery cases in Bengaluru",
+    "Analyze crime trends this year",
+    "Compare districts by crime rate",
+    "Find cases involving knife attacks",
+  ]
+
   return (
-    <div className="flex flex-col h-[600px] rounded-2xl bg-card border border-card-border overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-card-border">
+    <div className="flex flex-col h-[75vh] min-h-[500px] rounded-2xl bg-card border border-card-border overflow-hidden shadow-sm">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-card-border bg-surface">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Bot className="w-4 h-4 text-primary" />
+          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-primary to-accent-cyan flex items-center justify-center">
+            <Bot className="w-[18px] h-[18px] text-white" />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">AI Investigation Assistant</p>
-            <p className="text-[11px] text-muted-foreground">Natural language to SQL over live FIR data</p>
+            <p className="text-[11px] text-muted-foreground">Natural language interface for crime data analysis</p>
           </div>
         </div>
-        <Badge variant="success" size="sm" dot>Online</Badge>
+
       </div>
 
       <div className="flex-1 overflow-y-auto p-5 space-y-4">
@@ -211,21 +254,21 @@ export function ChatInterface() {
               animate={{ opacity: 1, y: 0 }}
               className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
             >
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
                 msg.role === "user" ? "bg-primary/10" : "bg-primary/10"
               }`}>
                 {msg.role === "user" ? (
-                  <User className="w-3.5 h-3.5 text-primary" />
+                  <User className="w-4 h-4 text-primary" />
                 ) : (
-                  <Bot className="w-3.5 h-3.5 text-white" />
+                  <Bot className="w-4 h-4 text-primary" />
                 )}
               </div>
-              <div className={`max-w-[85%] min-w-0 ${
+              <div className={`max-w-[88%] min-w-0 ${
                 msg.role === "user"
                   ? "bg-primary/8 border border-primary/15"
                   : msg.error
                     ? "bg-accent-rose/5 border border-accent-rose/15"
-                    : "bg-card border border-card-border"
+                    : "bg-surface border border-card-border"
               } rounded-xl px-4 py-3`}>
                 {msg.response ? (
                   <AssistantReply response={msg.response} />
@@ -247,13 +290,13 @@ export function ChatInterface() {
           ))}
           {isLoading && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Bot className="w-3.5 h-3.5 text-primary" />
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-primary" />
               </div>
-              <div className="bg-card border border-card-border rounded-xl px-4 py-3">
+              <div className="bg-surface border border-card-border rounded-xl px-4 py-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  Translating to SQL and querying the database...
+                  Processing your request...
                 </div>
               </div>
             </motion.div>
@@ -264,14 +307,17 @@ export function ChatInterface() {
 
       {messages.length === 1 && (
         <div className="px-5 pb-3">
+          <p className="text-[11px] text-muted-foreground mb-2 flex items-center gap-1">
+            <Sparkles className="w-3 h-3" />
+            Try asking
+          </p>
           <div className="flex flex-wrap gap-2">
-            {suggestions.map((s) => (
+            {initialSuggestions.map((s) => (
               <button
                 key={s}
-                onClick={() => handleSend(s)}
+                onClick={() => handleSuggestionClick(s)}
                 className="px-3 py-1.5 rounded-lg bg-card border border-card-border text-xs text-muted-foreground hover:text-foreground hover:bg-card-hover transition-all"
               >
-                <Sparkles className="w-3 h-3 inline mr-1 text-primary" />
                 {s}
               </button>
             ))}
@@ -279,7 +325,7 @@ export function ChatInterface() {
         </div>
       )}
 
-      <div className="p-4 border-t border-card-border">
+      <div className="p-4 border-t border-card-border bg-surface">
         <div className="flex items-center gap-3">
           <input
             value={input}

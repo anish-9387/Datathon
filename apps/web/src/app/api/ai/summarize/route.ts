@@ -46,11 +46,13 @@ export async function POST(request: Request) {
       fir = caseToFIR(record)
       details = caseSummary(record)
 
-      const { firs, byId } = await fetchCorpus({
+      const corpusResult = await fetchCorpus({
         crimeType: record.crimeMajorHead?.CrimeGroupName ?? undefined,
         limit: 100,
       })
-      const corpus = firs.some((f) => f.fir_id === fir.fir_id) ? firs : [fir, ...firs]
+      const firs: FIRInput[] = corpusResult.firs
+      const byId = corpusResult.byId
+      const corpus: FIRInput[] = firs.some((f: FIRInput) => f.fir_id === fir.fir_id) ? firs : [fir, ...firs]
       const similar = await ml<{ results: Array<{ fir_id: string; score: number }> }>(
         "crime-dna/similarity",
         { request: { fir_id: fir.fir_id, top_k: 6 }, firs: corpus }

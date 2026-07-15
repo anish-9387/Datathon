@@ -42,29 +42,28 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden login-bg">
       {/* Golgumbaz watermark (left) */}
-      <div className="absolute left-0 opacity-[0.08] pointer-events-none z-0 hidden md:block" style={{ bottom: "110px" }}>
+      <div className="absolute left-0 opacity-[0.06] pointer-events-none z-0 hidden lg:block" style={{ bottom: "80px" }}>
         <img
           src="/assets/golgumbaz.svg"
           alt=""
-          className="h-[45vh] w-auto object-contain"
+          className="h-[50vh] w-auto object-contain"
         />
       </div>
 
       {/* Hampi watermark (right) */}
-      <div className="absolute right-0 bottom-0 opacity-[0.08] pointer-events-none z-0 hidden md:block">
+      <div className="absolute right-0 bottom-0 opacity-[0.06] pointer-events-none z-0 hidden lg:block">
         <img
           src="/assets/hampi.svg"
           alt=""
-          className="h-[70vh] w-auto object-contain"
+          className="h-[75vh] w-auto object-contain"
         />
       </div>
 
-      {/* Bottom red/orange wave */}
-      <div className="absolute left-0 right-0 pointer-events-none" style={{ bottom: "-10px" }}>
-        <svg viewBox="0 0 1440 180" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-          <path d="M0 180V80C200 40 400 60 600 50C800 40 1000 20 1200 40C1350 55 1440 70 1440 70V180H0Z" fill="#c0392b"/>
-          <path d="M0 180V110C200 70 400 90 600 80C800 70 1000 50 1200 70C1350 85 1440 100 1440 100V180H0Z" fill="#e74c3c"/>
-          <path d="M0 180V130C200 100 400 115 600 108C800 100 1000 85 1200 100C1350 112 1440 125 1440 125V180H0Z" fill="#f39c12" opacity="0.8"/>
+      {/* Bottom gradient wave */}
+      <div className="absolute left-0 right-0 pointer-events-none" style={{ bottom: "-2px" }}>
+        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+          <path d="M0 120V60C160 30 320 45 480 35C640 25 800 15 960 30C1120 45 1280 55 1440 40V120H0Z" fill="#7B241C" opacity="0.15"/>
+          <path d="M0 120V75C160 50 320 60 480 52C640 44 800 38 960 48C1120 58 1280 65 1440 55V120H0Z" fill="#7B241C" opacity="0.1"/>
         </svg>
       </div>
 
@@ -92,19 +91,21 @@ export default function LoginPage() {
             Corvus
           </h1>
           <div className="flex items-center justify-center gap-3 mt-3">
-            <div className="h-px w-10 bg-gradient-to-r from-transparent to-[#e67e22]" />
+            <div className="h-px w-10 bg-linear-to-r from-transparent to-[#e67e22]" />
             <p className="text-base text-[#8b6914] font-medium tracking-wide">
               Crime Intelligence Platform
             </p>
-            <div className="h-px w-10 bg-gradient-to-l from-transparent to-[#e67e22]" />
+            <div className="h-px w-10 bg-linear-to-l from-transparent to-[#e67e22]" />
           </div>
         </div>
 
         {/* Login Card */}
         <div
-          className="rounded-3xl backdrop-blur-sm shadow-2xl border border-white/50"
-          style={{ background: "rgba(255, 255, 255, 0.9)", padding: "2.5rem" }}
+          className="rounded-3xl backdrop-blur-sm shadow-2xl border border-white/50 relative overflow-hidden"
+          style={{ background: "rgba(255, 255, 255, 0.92)", padding: "2.5rem" }}
         >
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-linear-to-bl from-primary/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-linear-to-tr from-accent-amber/5 to-transparent rounded-full blur-3xl pointer-events-none" />
           <form onSubmit={handleSubmit}>
             {error && (
               <motion.div
@@ -185,14 +186,15 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2.5 text-white font-semibold shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
+                className="w-full flex items-center justify-center gap-2.5 text-white font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none relative overflow-hidden group"
                 style={{
                   height: "3.25rem",
                   borderRadius: "0.75rem",
-                  background: "linear-gradient(to right, #c0392b, #e74c3c)",
+                  background: "linear-gradient(135deg, #7B241C, #A63D2F)",
                   fontSize: "1rem",
                 }}
               >
+                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300" />
                 {loading ? (
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
