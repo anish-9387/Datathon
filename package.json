@@ -5,7 +5,9 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:views": "prisma db execute --file prisma/views.sql",
     "dev:web": "pnpm --filter web dev",
-    "dev:ml": "cd apps/ml-service && poetry run serve"
+    "dev:ml": "cd apps/ml-service && poetry run serve",
+    "build:web": "pnpm --filter web build",
+    "start:web": "pnpm --filter web start"
   },
   "prisma": {
     "seed": "tsx scripts/seed.ts"
