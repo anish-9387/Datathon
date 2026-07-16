@@ -1,5 +1,7 @@
 {
   "scripts": {
+    "build": "pnpm build:web",
+    "start": "node start.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push && prisma db execute --file prisma/views.sql",
     "db:seed": "tsx scripts/seed.ts",
