@@ -1,5 +1,6 @@
 import logging
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,12 +15,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info(f"Starting {settings.app_name} v{settings.version}")
+    logger.info(f"Embedding model: {settings.embedding_model}")
+    logger.info(f"CORS origins: {settings.cors_origins}")
+    yield
+
+
 app = FastAPI(
     title=settings.app_name,
     version=settings.version,
     description="Machine Learning microservice for Crime Intelligence Platform (Karnataka Police)",
     docs_url="/api/v1/docs",
     redoc_url="/api/v1/redoc",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -67,10 +78,3 @@ app.include_router(anomaly.router, prefix="/api/v1/anomaly", tags=["Anomaly Dete
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["Criminal Network Graph"])
 app.include_router(assistant.router, prefix="/api/v1/assistant", tags=["NLP Assistant"])
 app.include_router(similarity.router, prefix="/api/v1/similarity", tags=["Similarity Search"])
-
-
-@app.on_event("startup")
-async def startup_event():
-    logger.info(f"Starting {settings.app_name} v{settings.version}")
-    logger.info(f"Embedding model: {settings.embedding_model}")
-    logger.info(f"CORS origins: {settings.cors_origins}")
