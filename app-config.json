@@ -1,5 +1,5 @@
 {
-  "command": "sh -c 'PORT=${X_ZOHO_CATALYST_LISTEN_PORT} node server.js'",
+  "command": "sh -c 'PORT=${X_ZOHO_CATALYST_LISTEN_PORT} node apps/web/server.js'",
   "build_path": "./apps/web/.next/standalone",
   "stack": "node22",
   "env_variables": {},
