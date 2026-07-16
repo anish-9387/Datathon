@@ -13,9 +13,11 @@
     "seed": "tsx scripts/seed.ts"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.43",
     "bcryptjs": "^3.0.3",
     "prisma": "^5.22.0",
+    "tailwindcss": "^4",
     "tsx": "^4.19.0"
   },
   "dependencies": {
