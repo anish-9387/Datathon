@@ -1,12 +1,7 @@
 import type { NextConfig } from "next";
 
-const isCatalyst = process.env.CATALYST_BUILD === "true"
-
 const nextConfig: NextConfig = {
-  distDir: isCatalyst ? "../../.next" : ".next",
-  typescript: {
-    ignoreBuildErrors: isCatalyst,
-  },
+  output: "standalone",
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
   images: {
     remotePatterns: [
