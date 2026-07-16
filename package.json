@@ -7,8 +7,7 @@
     "dev:web": "pnpm --filter web dev",
     "dev:ml": "cd apps/ml-service && poetry run serve",
     "build:web": "pnpm --filter web build",
-    "start:web": "pnpm --filter web start",
-    "start": "PORT=${ZC_SLATE_PORT:-3000} node .next/standalone/server.js"
+    "start:web": "pnpm --filter web start"
   },
   "prisma": {
     "seed": "tsx scripts/seed.ts"
