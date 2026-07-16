@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:slate": "npm install --legacy-peer-deps && prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },
