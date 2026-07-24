@@ -1,14 +1,6 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import {
-  caseCorpusInclude,
-  caseSummary,
-  caseToFIR,
-  fetchCorpus,
-  ml,
-  MLServiceError,
-  type FIRInput,
-} from "@/lib/ml"
+import { caseSummary, fetchCorpus, ml, MLServiceError, type FIRInput } from "@/lib/ml"
+import { getBackendCases } from "@/lib/backend-data"
 
 interface SummaryResult {
   summary: string
@@ -36,18 +28,50 @@ export async function POST(request: Request) {
     let related: Array<{ firNumber: string; similarity: number; type: string | null }> = []
 
     if (crimeNo) {
-      const record = await prisma.caseMaster.findFirst({
-        where: { CrimeNo: crimeNo },
-        include: caseCorpusInclude,
-      })
+      const allCases = await getBackendCases()
+      const record = allCases.find((caseItem) => caseItem.crimeNo === crimeNo)
       if (!record) {
         return NextResponse.json({ error: `FIR ${crimeNo} not found` }, { status: 404 })
       }
-      fir = caseToFIR(record)
-      details = caseSummary(record)
+      fir = {
+        fir_id: record.crimeNo,
+        district: record.district ?? "Unknown",
+        police_station: record.policeStation ?? "Unknown",
+        section_law: record.sectionLaw,
+        date_time: record.date,
+        crime_type: record.crimeType,
+        location: record.policeStation ?? "Unknown",
+        location_type: "",
+        latitude: record.latitude,
+        longitude: record.longitude,
+        weapon: record.weapon ?? "",
+        accused_name: record.accused.join(", "),
+        accused_profile: record.accused[0] ? `Accused ${record.accused[0]}` : "",
+        victim_name: record.victims.join(", "),
+        victim_profile: record.victims[0] ? `Victim ${record.victims[0]}` : "",
+        escape_mode: "",
+        fir_text: record.firText,
+        status: record.status ?? "",
+      }
+      details = {
+        id: record.id,
+        crimeNo: record.crimeNo,
+        date: record.date,
+        crimeType: record.crimeType,
+        crimeGroup: record.crimeGroup,
+        district: record.district,
+        policeStation: record.policeStation,
+        status: record.status,
+        latitude: record.latitude,
+        longitude: record.longitude,
+        briefFacts: record.briefFacts,
+        accused: record.accused,
+        victims: record.victims,
+        weapon: record.weapon,
+      }
 
       const corpusResult = await fetchCorpus({
-        crimeType: record.crimeMajorHead?.CrimeGroupName ?? undefined,
+        crimeType: record.crimeGroup ?? undefined,
         limit: 100,
       })
       const firs: FIRInput[] = corpusResult.firs
@@ -65,7 +89,7 @@ export async function POST(request: Request) {
           return {
             firNumber: r.fir_id,
             similarity: Math.round(r.score * 1000) / 10,
-            type: c ? caseSummary(c).crimeType : null,
+            type: c ? (c as { crimeType: string }).crimeType : null,
           }
         })
     } else {

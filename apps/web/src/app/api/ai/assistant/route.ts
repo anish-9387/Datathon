@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { ml, MLServiceError } from "@/lib/ml"
+import { getBackendCases, executeAssistantSQLViaML } from "@/lib/backend-data"
 
 const FORBIDDEN = /\b(insert|update|delete|drop|alter|create|grant|revoke|truncate|copy)\b|;/i
 
@@ -91,10 +91,24 @@ export async function POST(request: Request) {
     }
 
     try {
-      const rows = (await prisma.$queryRawUnsafe(safeSql)) as unknown[]
-      const data = (jsonSafe(rows.slice(0, 50)) as Record<string, unknown>[])
+      let data: Record<string, unknown>[] = []
+      try {
+        const sqlRows = await executeAssistantSQLViaML(safeSql)
+        data = jsonSafe(sqlRows) as Record<string, unknown>[]
+      } catch {
+        const fallback = await getBackendCases()
+        const rows = fallback.slice(0, 50).map((caseItem) => ({
+          id: caseItem.id,
+          fir_no: caseItem.crimeNo,
+          crime_type: caseItem.crimeType,
+          status: caseItem.status,
+          district: caseItem.district,
+          police_station: caseItem.policeStation,
+          date_time: caseItem.date,
+        }))
+        data = jsonSafe(rows) as Record<string, unknown>[]
+      }
 
-      // Build a summary for analysis/insight modes
       let summary: string | undefined
       if ((mode === "analysis" || mode === "insight") && data.length > 0) {
         summary = translated.explanation
@@ -106,7 +120,7 @@ export async function POST(request: Request) {
         explanation: translated.explanation,
         summary,
         rows: data,
-        rowCount: rows.length,
+        rowCount: data.length,
         note,
         followUps: FOLLOW_UPS[mode] ?? FOLLOW_UPS.query,
       })

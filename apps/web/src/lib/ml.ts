@@ -1,5 +1,4 @@
-import { Prisma } from "@prisma/client"
-import { prisma } from "@/lib/prisma"
+import { getBackendCases } from "@/lib/backend-data"
 
 // Server-side client for the FastAPI ML microservice.
 // All ML endpoints are stateless: the FIR corpus travels in the request body.
@@ -104,39 +103,75 @@ export function deriveEscapeMode(text?: string | null): string {
   return ""
 }
 
-export const caseCorpusInclude = {
-  policeStation: { include: { district: true } },
-  crimeMajorHead: true,
-  caseStatus: true,
-  accused: true,
-  victims: true,
-  actSectionAssocs: true,
-} satisfies Prisma.CaseMasterInclude
-
-export type CorpusCase = Prisma.CaseMasterGetPayload<{ include: typeof caseCorpusInclude }>
+export interface CorpusCase {
+  id?: number
+  crimeNo?: string
+  CrimeNo?: string
+  IncidentFromDate?: Date | null
+  CrimeRegisteredDate?: Date | null
+  BriefFacts?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  policeStation?: {
+    UnitName?: string | null
+    district?: {
+      DistrictName?: string | null
+    } | null
+  } | string | null
+  crimeMajorHead?: {
+    CrimeGroupName?: string | null
+  } | null
+  caseStatus?: {
+    CaseStatusName?: string | null
+  } | null
+  accused: Array<{ AccusedName?: string; AgeYear?: number | null } | string>
+  victims: Array<{ VictimName?: string; AgeYear?: number | null } | string>
+  actSectionAssocs?: Array<{ ActID: string; SectionID: string }>
+  crimeType?: string
+  crimeGroup?: string | null
+  district?: string | null
+  policeStationName?: string | null
+  status?: string | null
+  briefFacts?: string | null
+  weapon?: string | null
+  sectionLaw?: string
+  firText?: string
+  date?: string | null
+}
 
 export function caseToFIR(c: CorpusCase): FIRInput {
-  const facts = c.BriefFacts ?? ""
-  const section = c.actSectionAssocs[0]
+  const facts = c.BriefFacts ?? c.briefFacts ?? ""
+  const section = c.actSectionAssocs?.[0]
+  const crimeNo = c.CrimeNo ?? c.crimeNo ?? ""
   return {
-    fir_id: c.CrimeNo,
-    district: c.policeStation?.district?.DistrictName ?? "Unknown",
-    police_station: c.policeStation?.UnitName ?? "Unknown",
-    section_law: section ? `${section.ActID} ${section.SectionID}` : "",
-    date_time: (c.IncidentFromDate ?? c.CrimeRegisteredDate)?.toISOString() ?? null,
-    crime_type: normalizeCrimeType(c.crimeMajorHead?.CrimeGroupName),
-    location: c.policeStation?.UnitName ?? "Unknown",
+    fir_id: crimeNo,
+    district: typeof c.policeStation === "object" && c.policeStation !== null && "district" in c.policeStation
+      ? c.policeStation.district?.DistrictName ?? c.district ?? "Unknown"
+      : c.district ?? "Unknown",
+    police_station: typeof c.policeStation === "object" && c.policeStation !== null && "UnitName" in c.policeStation
+      ? c.policeStation.UnitName ?? c.policeStationName ?? "Unknown"
+      : typeof c.policeStation === "string"
+        ? c.policeStation
+        : c.policeStationName ?? "Unknown",
+    section_law: section ? `${section.ActID} ${section.SectionID}` : c.sectionLaw ?? "",
+    date_time: (c.IncidentFromDate ?? c.CrimeRegisteredDate)?.toISOString() ?? c.date ?? null,
+    crime_type: normalizeCrimeType(c.crimeMajorHead?.CrimeGroupName ?? c.crimeGroup),
+    location: typeof c.policeStation === "object" && c.policeStation !== null && "UnitName" in c.policeStation
+      ? c.policeStation.UnitName ?? c.policeStationName ?? "Unknown"
+      : typeof c.policeStation === "string"
+        ? c.policeStation
+        : c.policeStationName ?? "Unknown",
     location_type: "",
     latitude: c.latitude ? Number(c.latitude) : null,
     longitude: c.longitude ? Number(c.longitude) : null,
-    weapon: deriveWeapon(facts),
-    accused_name: c.accused.map((a) => a.AccusedName).join(", "),
-    accused_profile: c.accused[0]?.AgeYear ? `Age ${c.accused[0].AgeYear}` : "",
-    victim_name: c.victims.map((v) => v.VictimName).join(", "),
-    victim_profile: c.victims[0]?.AgeYear ? `Age ${c.victims[0].AgeYear}` : "",
+    weapon: deriveWeapon(facts) || c.weapon || "",
+    accused_name: c.accused.map((a) => typeof a === "string" ? a : a.AccusedName ?? "").filter(Boolean).join(", "),
+    accused_profile: c.accused[0] && typeof c.accused[0] !== "string" && c.accused[0].AgeYear ? `Age ${c.accused[0].AgeYear}` : "",
+    victim_name: c.victims.map((v) => typeof v === "string" ? v : v.VictimName ?? "").filter(Boolean).join(", "),
+    victim_profile: c.victims[0] && typeof c.victims[0] !== "string" && c.victims[0].AgeYear ? `Age ${c.victims[0].AgeYear}` : "",
     escape_mode: deriveEscapeMode(facts),
     fir_text: facts,
-    status: c.caseStatus?.CaseStatusName ?? "",
+    status: c.caseStatus?.CaseStatusName ?? c.status ?? "",
   }
 }
 
@@ -151,42 +186,59 @@ export interface CorpusOptions {
 // enrich ML results (keyed by fir_id == CrimeNo) with full case records.
 export async function fetchCorpus(opts: CorpusOptions = {}) {
   const { district, crimeType, limit = 200, requireAccused = false } = opts
-  const where: Prisma.CaseMasterWhereInput = {}
-  if (district) {
-    where.policeStation = { district: { DistrictName: { equals: district, mode: "insensitive" } } }
-  }
-  if (crimeType) {
-    where.crimeMajorHead = { CrimeGroupName: { contains: crimeType, mode: "insensitive" } }
-  }
-  if (requireAccused) {
-    where.accused = { some: {} }
-  }
-  const cases = await prisma.caseMaster.findMany({
-    where,
-    include: caseCorpusInclude,
-    orderBy: { CrimeRegisteredDate: "desc" },
-    take: Math.min(limit, 500),
-  })
-  const firs = cases.map(caseToFIR)
-  const byId = new Map(cases.map((c) => [c.CrimeNo, c]))
+  const allCases = await getBackendCases()
+  const cases = allCases.filter((caseItem) => {
+    if (district && !caseItem.district?.toLowerCase().includes(district.toLowerCase())) return false
+    if (crimeType && !caseItem.crimeType.toLowerCase().includes(crimeType.toLowerCase())) return false
+    if (requireAccused && caseItem.accused.length === 0) return false
+    return true
+  }).slice(0, Math.min(limit, 500))
+
+  const firs = cases.map((caseItem) => ({
+    fir_id: caseItem.crimeNo,
+    district: caseItem.district ?? "Unknown",
+    police_station: caseItem.policeStation ?? "Unknown",
+    section_law: caseItem.sectionLaw,
+    date_time: caseItem.date,
+    crime_type: caseItem.crimeType,
+    location: caseItem.policeStation ?? "Unknown",
+    location_type: "",
+    latitude: caseItem.latitude,
+    longitude: caseItem.longitude,
+    weapon: caseItem.weapon ?? "",
+    accused_name: caseItem.accused.join(", "),
+    accused_profile: caseItem.accused[0] ? `Accused ${caseItem.accused[0]}` : "",
+    victim_name: caseItem.victims.join(", "),
+    victim_profile: caseItem.victims[0] ? `Victim ${caseItem.victims[0]}` : "",
+    escape_mode: "",
+    fir_text: caseItem.firText,
+    status: caseItem.status ?? "",
+  }))
+  const byId = new Map(cases.map((caseItem) => [caseItem.crimeNo, caseItem]))
   return { cases, firs, byId }
 }
 
 export function caseSummary(c: CorpusCase) {
   return {
-    id: c.CaseMasterID,
-    crimeNo: c.CrimeNo,
-    date: (c.IncidentFromDate ?? c.CrimeRegisteredDate)?.toISOString() ?? null,
-    crimeType: normalizeCrimeType(c.crimeMajorHead?.CrimeGroupName),
-    crimeGroup: c.crimeMajorHead?.CrimeGroupName ?? null,
-    district: c.policeStation?.district?.DistrictName ?? null,
-    policeStation: c.policeStation?.UnitName ?? null,
-    status: c.caseStatus?.CaseStatusName ?? null,
+    id: c.id ?? 0,
+    crimeNo: c.CrimeNo ?? c.crimeNo ?? "",
+    date: (c.IncidentFromDate ?? c.CrimeRegisteredDate)?.toISOString() ?? c.date ?? null,
+    crimeType: normalizeCrimeType(c.crimeMajorHead?.CrimeGroupName ?? c.crimeGroup),
+    crimeGroup: c.crimeMajorHead?.CrimeGroupName ?? c.crimeGroup ?? null,
+    district: typeof c.policeStation === "object" && c.policeStation !== null && "district" in c.policeStation
+      ? c.policeStation.district?.DistrictName ?? c.district ?? null
+      : c.district ?? null,
+    policeStation: typeof c.policeStation === "object" && c.policeStation !== null && "UnitName" in c.policeStation
+      ? c.policeStation.UnitName ?? c.policeStationName ?? null
+      : typeof c.policeStation === "string"
+        ? c.policeStation
+        : c.policeStationName ?? null,
+    status: c.caseStatus?.CaseStatusName ?? c.status ?? null,
     latitude: c.latitude ? Number(c.latitude) : null,
     longitude: c.longitude ? Number(c.longitude) : null,
-    briefFacts: c.BriefFacts,
-    accused: c.accused.map((a) => a.AccusedName),
-    victims: c.victims.map((v) => v.VictimName),
-    weapon: deriveWeapon(c.BriefFacts) || null,
+    briefFacts: c.BriefFacts ?? c.briefFacts ?? null,
+    accused: c.accused.map((a) => typeof a === "string" ? a : a.AccusedName ?? "").filter(Boolean),
+    victims: c.victims.map((v) => typeof v === "string" ? v : v.VictimName ?? "").filter(Boolean),
+    weapon: deriveWeapon(c.BriefFacts ?? c.briefFacts ?? "") || c.weapon || null,
   }
 }

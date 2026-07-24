@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { ml, MLServiceError } from "@/lib/ml"
+import { getHotspotHistory } from "@/lib/backend-data"
 
 interface HotspotResult {
   hotspots: Array<{
@@ -19,22 +19,8 @@ export async function GET(request: Request) {
   const crimeType = searchParams.get("type") ?? ""
 
   try {
-    const historicalRows =
-      (await prisma.$queryRaw<
-        Array<{ lat: number; lng: number; incidents: number; name: string | null; district: string | null }>
-      >`
-      SELECT round(latitude::numeric, 2)::float AS lat,
-             round(longitude::numeric, 2)::float AS lng,
-             count(*)::int AS incidents,
-             mode() WITHIN GROUP (ORDER BY police_station) AS name,
-             mode() WITHIN GROUP (ORDER BY district) AS district
-      FROM fir
-      WHERE latitude IS NOT NULL
-        AND (${district}::text = '' OR district ILIKE ${district})
-      GROUP BY 1, 2
-      ORDER BY incidents DESC
-      LIMIT 15
-    `) as Array<{ lat: number; lng: number; incidents: number; name: string | null; district: string | null }>
+    const allHotspots = await getHotspotHistory()
+    const historicalRows = allHotspots.filter((item) => !district || item.district?.toLowerCase().includes(district.toLowerCase()))
 
     const predicted = await ml<HotspotResult>("forecasting/hotspot", {
       district,

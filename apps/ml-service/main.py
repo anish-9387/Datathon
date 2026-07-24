@@ -69,7 +69,7 @@ async def health_check():
     )
 
 
-from app.routers import crime_dna, clustering, forecasting, anomaly, graph, assistant, similarity
+from app.routers import crime_dna, clustering, forecasting, anomaly, graph, assistant, similarity, data
 
 app.include_router(crime_dna.router, prefix="/api/v1/crime-dna", tags=["Crime DNA"])
 app.include_router(clustering.router, prefix="/api/v1/clustering", tags=["Clustering"])
@@ -78,3 +78,5 @@ app.include_router(anomaly.router, prefix="/api/v1/anomaly", tags=["Anomaly Dete
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["Criminal Network Graph"])
 app.include_router(assistant.router, prefix="/api/v1/assistant", tags=["NLP Assistant"])
 app.include_router(similarity.router, prefix="/api/v1/similarity", tags=["Similarity Search"])
+app.include_router(data.router, prefix="/api/v1/data", tags=["Data API"])
+
