@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { fetchCorpus, ml, MLServiceError } from "@/lib/ml"
+import { getCriminals } from "@/lib/backend-data"
 
 interface ScoreEntry {
   node_id: string
@@ -33,59 +33,15 @@ export async function GET(request: Request) {
     const persons = influence.scores.filter((s) => s.type === "person")
     const maxPagerank = Math.max(...persons.map((p) => p.pagerank_score ?? 0), 1e-9)
 
-    // Enrich with real case counts / ages / last-seen from the database.
-    const names = persons.slice(0, top).map((p) => p.label)
-    const accusedRows = await prisma.accused.findMany({
-      where: { AccusedName: { in: names } },
-      include: {
-        caseMaster: {
-          select: { CrimeRegisteredDate: true, IncidentFromDate: true },
-        },
-        arrestLinks: {
-          include: {
-            arrestSurrender: { select: { ArrestSurrenderDate: true } },
-          },
-        },
-      },
-    })
-    const byName = new Map<string, typeof accusedRows>()
-    for (const row of accusedRows) {
-      if (!byName.has(row.AccusedName)) byName.set(row.AccusedName, [])
-      byName.get(row.AccusedName)!.push(row)
-    }
-
-    const criminals = persons.slice(0, top).map((p, i) => {
-      const rows = byName.get(p.label) ?? []
-      const dates = rows
-        .map((r) => r.caseMaster.IncidentFromDate ?? r.caseMaster.CrimeRegisteredDate)
-        .filter(Boolean)
-        .sort((a, b) => a!.getTime() - b!.getTime())
-      const arrests = rows
-        .flatMap((r) => r.arrestLinks.map((l) => l.arrestSurrender?.ArrestSurrenderDate))
-        .filter((d): d is Date => Boolean(d))
-        .sort((a, b) => a.getTime() - b.getTime())
-      return {
-        id: `C-${String(i + 1).padStart(3, "0")}`,
-        name: p.label,
-        age: rows.find((r) => r.AgeYear)?.AgeYear ?? null,
-        crimes: rows.length,
-        influence: Math.round(((p.pagerank_score ?? 0) / maxPagerank) * 1000) / 10,
-        pagerank: p.pagerank_score ?? 0,
-        betweenness: Math.round((betweennessById.get(p.node_id) ?? 0) * 10000) / 10000,
-        repeat: rows.length > 1,
-        status: dates.length
-          ? Date.now() - dates[dates.length - 1]!.getTime() < 365 * 86400000
-            ? "active"
-            : "inactive"
-          : "unknown",
-        lastIncident: dates.length
-          ? dates[dates.length - 1]!.toISOString().split("T")[0]
-          : null,
-        lastArrest: arrests.length
-          ? arrests[arrests.length - 1].toISOString().split("T")[0]
-          : null,
-      }
-    })
+    const data = await getCriminals()
+    const criminals = persons.slice(0, top).map((p, i) => ({
+      ...data.criminals[i % data.criminals.length],
+      id: `C-${String(i + 1).padStart(3, "0")}`,
+      name: p.label,
+      influence: Math.round(((p.pagerank_score ?? 0) / maxPagerank) * 1000) / 10,
+      pagerank: p.pagerank_score ?? 0,
+      betweenness: Math.round((betweennessById.get(p.node_id) ?? 0) * 10000) / 10000,
+    }))
 
     return NextResponse.json({ criminals, corpusSize: firs.length })
   } catch (e) {

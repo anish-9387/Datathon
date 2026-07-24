@@ -1,36 +1,57 @@
 import { NextResponse } from "next/server"
 import { fetchCorpus, ml, MLServiceError } from "@/lib/ml"
 
-interface NetworkResponse {
-  nodes: Array<{ id: string; label: string; type: string; weight: number }>
-  edges: Array<{ source: string; target: string; weight: number; relationship: string }>
-  stats: Record<string, number>
+interface NetworkNode {
+  id: string
+  label: string
+  type: string
+  weight: number
+}
+
+interface NetworkEdge {
+  source: string
+  target: string
+  weight: number
+  relationship: string
+}
+
+interface CriminalNetworkResult {
+  nodes: NetworkNode[]
+  edges: NetworkEdge[]
+  stats: {
+    total_nodes: number
+    total_edges: number
+    density: number
+    connected_components: number
+    avg_degree?: number
+  }
 }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const district = searchParams.get("district") ?? undefined
-  const crimeType = searchParams.get("type") ?? undefined
-  const limit = Math.min(
-    Math.max(parseInt(searchParams.get("limit") || "60", 10) || 60, 10),
-    200
-  )
 
   try {
-    const { firs } = await fetchCorpus({ district, crimeType, limit, requireAccused: true })
+    const { firs } = await fetchCorpus({ district, limit: 300 })
+
     if (firs.length === 0) {
-      return NextResponse.json({ nodes: [], edges: [], stats: { total_nodes: 0, total_edges: 0 } })
+      return NextResponse.json({
+        nodes: [],
+        edges: [],
+        stats: { total_nodes: 0, total_edges: 0, density: 0, connected_components: 0 },
+      })
     }
 
-    const network = await ml<NetworkResponse>("graph/criminal-network", {
+    const graph = await ml<CriminalNetworkResult>("graph/criminal-network", {
       request: { fir_ids: firs.map((f) => f.fir_id) },
       firs,
     })
 
     return NextResponse.json({
-      nodes: network.nodes,
-      edges: network.edges.map((e) => ({ ...e, type: e.relationship })),
-      stats: network.stats,
+      nodes: graph.nodes,
+      edges: graph.edges,
+      stats: graph.stats,
+      corpusSize: firs.length,
     })
   } catch (e) {
     if (e instanceof MLServiceError) {

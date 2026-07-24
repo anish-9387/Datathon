@@ -1,13 +1,27 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import {
-  caseCorpusInclude,
-  caseSummary,
-  caseToFIR,
-  fetchCorpus,
-  ml,
-  MLServiceError,
-} from "@/lib/ml"
+import { fetchCorpus, ml, MLServiceError, caseSummary } from "@/lib/ml"
+
+interface DNAEncodeResult {
+  fir_id: string
+  embedding_dim: number
+  fingerprint: string
+  status: string
+}
+
+interface FIRSimilarityResult {
+  query_fir_id: string
+  results: Array<{
+    fir_id: string
+    score: number
+    crime_type?: string
+    location?: string
+    district?: string
+    date_time?: string
+    status?: string
+    weapon?: string
+  }>
+  total: number
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -18,56 +32,79 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing FIR number" }, { status: 400 })
   }
 
-  const queryCase = await prisma.caseMaster.findFirst({
-    where: { CrimeNo: fir },
-    include: caseCorpusInclude,
-  })
-  if (!queryCase) {
-    return NextResponse.json({ error: `FIR ${fir} not found` }, { status: 404 })
-  }
-
   try {
-    const queryFIR = caseToFIR(queryCase)
+    // Fetch corpus — include cases of the same crime type as the query FIR
+    const { firs, byId } = await fetchCorpus({ limit: 300 })
 
-    // Candidate corpus: same crime group first, padded with same district.
-    const { firs, byId } = await fetchCorpus({
-      crimeType: queryCase.crimeMajorHead?.CrimeGroupName ?? undefined,
-      limit: 200,
-    })
-    const corpus = firs.some((f) => f.fir_id === queryFIR.fir_id) ? firs : [queryFIR, ...firs]
+    // Find the query FIR in the corpus
+    const queryFirInput = firs.find((f) => f.fir_id === fir)
+    if (!queryFirInput) {
+      return NextResponse.json({ error: `FIR ${fir} not found in database` }, { status: 404 })
+    }
 
+    // Ensure query FIR is in corpus for similarity search
+    const corpusFirs = firs.some((f) => f.fir_id === fir) ? firs : [queryFirInput, ...firs]
+
+    // Call ML service in parallel: encode + similarity search
     const [encoded, similar] = await Promise.all([
-      ml<{ fingerprint: string; embedding_dim: number }>("crime-dna/encode", queryFIR),
-      ml<{ results: Array<{ fir_id: string; score: number }>; total: number }>(
-        "crime-dna/similarity",
-        { request: { fir_id: queryFIR.fir_id, top_k: topK + 1 }, firs: corpus }
-      ),
+      ml<DNAEncodeResult>("crime-dna/encode", queryFirInput),
+      ml<FIRSimilarityResult>("crime-dna/similarity", {
+        request: { fir_id: fir, top_k: topK + 1 },
+        firs: corpusFirs,
+      }),
     ])
 
+    // Enrich similarity results with case details
+    const queryCase = byId.get(fir)
+    const queryDetails = queryCase ? caseSummary(queryCase) : null
+
     const matches = similar.results
-      .filter((r) => r.fir_id !== queryFIR.fir_id)
+      .filter((r) => r.fir_id !== fir)
       .slice(0, topK)
-      .map((r) => {
+      .map((r, i) => {
         const c = byId.get(r.fir_id)
+        const s = c ? caseSummary(c) : null
         return {
           firNumber: r.fir_id,
-          similarity: Math.round(r.score * 1000) / 10,
-          type: c ? caseSummary(c).crimeType : null,
-          date: c ? caseSummary(c).date?.split("T")[0] : null,
-          location: c?.policeStation?.UnitName ?? null,
-          district: c?.policeStation?.district?.DistrictName ?? null,
-          status: c?.caseStatus?.CaseStatusName ?? null,
-          mo: c?.BriefFacts?.slice(0, 160) ?? null,
+          similarity: Math.round((r.score ?? 0) * 1000) / 10,
+          type: s?.crimeType ?? r.crime_type ?? null,
+          date: (r.date_time || s?.date || "").split("T")[0] || null,
+          location: s?.policeStation ?? r.location ?? null,
+          district: s?.district ?? r.district ?? null,
+          status: s?.status ?? r.status ?? null,
+          mo: s?.briefFacts?.slice(0, 150) ?? null,
+          weapon: s?.weapon ?? r.weapon ?? null,
+          accused: s?.accused ?? [],
+          score: r.score ?? 0,
+          rank: i + 1,
         }
       })
 
     return NextResponse.json({
       fir,
-      query: caseSummary(queryCase),
+      query: queryDetails
+        ? {
+            id: queryDetails.id,
+            crimeNo: queryDetails.crimeNo,
+            crimeType: queryDetails.crimeType,
+            crimeGroup: queryDetails.crimeGroup,
+            district: queryDetails.district,
+            policeStation: queryDetails.policeStation,
+            status: queryDetails.status,
+            briefFacts: queryDetails.briefFacts,
+            accused: queryDetails.accused,
+            victims: queryDetails.victims,
+            weapon: queryDetails.weapon,
+            date: queryDetails.date,
+            latitude: queryDetails.latitude,
+            longitude: queryDetails.longitude,
+          }
+        : null,
       dnaSignature: encoded.fingerprint,
       embeddingDim: encoded.embedding_dim,
       matches,
       topMatch: matches[0] ?? null,
+      corpusSize: corpusFirs.length,
     })
   } catch (e) {
     if (e instanceof MLServiceError) {
