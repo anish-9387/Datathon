@@ -169,6 +169,7 @@ class InfluenceResponse(BaseModel):
 
 class AssistantQueryRequest(BaseModel):
     query: str
+    context: list[str] = []
 
 
 class AssistantSqlResponse(BaseModel):

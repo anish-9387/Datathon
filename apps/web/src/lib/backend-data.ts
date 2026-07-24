@@ -256,23 +256,31 @@ export async function getPoliceStations() {
   ]
 }
 
-export async function getForecastData() {
-  // Static shape — the actual forecasting page calls /api/forecast which hits the ML forecasting endpoint
-  return {
-    forecast: [
-      { date: "2025-04-13", probability: 78.5, type: "Burglary", confidence: "high", district: "Bengaluru Urban", station: "Koramangala Police Station", explanation: "Elevated movement and nighttime activity", model: "xgboost-v1" },
-      { date: "2025-04-14", probability: 64.2, type: "Fraud", confidence: "medium", district: "Bengaluru Urban", station: "MG Road Police Station", explanation: "Recent phishing patterns", model: "xgboost-v1" },
-    ],
-    modelInfo: { name: "xgboost-v1", source: "ML Service — XGBoost Crime Predictor" },
+// Aggregate distinct accused names and districts from a set of matched cases,
+// so search facets reflect real results rather than placeholders.
+function summarizeSearchMatches(cases: BackendCase[]) {
+  const criminalCounts = new Map<string, number>()
+  const districtCounts = new Map<string, number>()
+  for (const c of cases) {
+    for (const name of c.accused) {
+      if (name) criminalCounts.set(name, (criminalCounts.get(name) ?? 0) + 1)
+    }
+    if (c.district) districtCounts.set(c.district, (districtCounts.get(c.district) ?? 0) + 1)
   }
-}
-
-export async function getGraphData() {
-  // The actual graph page calls /api/graph which hits the ML graph endpoint
   return {
-    nodes: [] as Array<{ id: string; label: string; type: string; weight: number }>,
-    edges: [] as Array<{ source: string; target: string; type: string; weight: number }>,
-    stats: { total_nodes: 0, total_edges: 0 },
+    cases: cases.map((c) => ({
+      id: c.id,
+      firNumber: c.crimeNo,
+      type: c.crimeType,
+      status: c.status,
+      district: c.district,
+    })),
+    criminals: [...criminalCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, crimes], i) => ({ id: `A-${i + 1}`, name, crimes, status: "known" })),
+    districts: [...districtCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, cases], i) => ({ id: i + 1, name, cases })),
   }
 }
 
@@ -283,17 +291,7 @@ export async function getSearchResults(q: string) {
     return {
       query: queryStr,
       total: res.total,
-      results: {
-        cases: res.results.cases.map((c) => ({
-          id: c.id,
-          firNumber: c.crimeNo,
-          type: c.crimeType,
-          status: c.status,
-          district: c.district,
-        })),
-        criminals: [{ id: "A-1", name: "N/A", crimes: 0, status: "unknown" }],
-        districts: [{ id: 1, name: "Bengaluru Urban", cases: res.total }],
-      },
+      results: summarizeSearchMatches(res.results.cases),
     }
   } catch {
     const matches = fallbackCases.filter((c) =>
@@ -302,11 +300,7 @@ export async function getSearchResults(q: string) {
     return {
       query: queryStr,
       total: matches.length,
-      results: {
-        cases: matches.slice(0, 3).map((c) => ({ id: c.id, firNumber: c.crimeNo, type: c.crimeType, status: c.status, district: c.district })),
-        criminals: [{ id: "A-1", name: "Ravi Kumar", crimes: 1, status: "known" }],
-        districts: [{ id: 1, name: "Bengaluru Urban", cases: 2 }],
-      },
+      results: summarizeSearchMatches(matches),
     }
   }
 }
@@ -337,72 +331,70 @@ export async function getNotifications() {
   }
 }
 
-export async function getCrimeDNA(fir: string) {
-  const caseItem = await getBackendCaseById(fir)
-  return {
-    fir,
-    query: caseItem
-      ? {
-          id: caseItem.id,
-          crimeNo: caseItem.crimeNo,
-          crimeType: caseItem.crimeType,
-          district: caseItem.district,
-          policeStation: caseItem.policeStation,
-          status: caseItem.status,
-          briefFacts: caseItem.briefFacts,
-        }
-      : null,
-    dnaSignature: "pending-ml-analysis",
-    embeddingDim: 384,
-    matches: [] as Array<{
-      firNumber: string
-      similarity: number
-      type: string
-      date: string
-      location: string
-      district: string
-      status: string
-      mo: string
-    }>,
-    topMatch: null,
-  }
+export interface CriminalRecord {
+  id: string
+  name: string
+  age: number
+  crimes: number
+  influence: number
+  betweenness: number
+  repeat: boolean
+  status: string
+  gang: string
+  lastArrest: string | null
+  liveCases: number
+  lastIncident: string | null
 }
 
-export async function getCriminals() {
-  const cases = await getBackendCases()
-  return {
-    criminals: [
-      { id: "C-001", name: "N/A", age: 0, crimes: 0, influence: 0, betweenness: 0, repeat: false, status: "unknown", gang: "N/A", lastArrest: "N/A" },
-    ],
-    corpusSize: cases.length,
-  }
+export async function getCriminals(district?: string): Promise<{ criminals: CriminalRecord[]; total: number }> {
+  return apiGet<{ criminals: CriminalRecord[]; total: number }>("criminals", { district })
 }
 
-export async function getEvolutionData() {
-  return [
-    { date: "2025-01", incidents: 5, severity: 40, phase: "Burglary" },
-    { date: "2025-02", incidents: 6, severity: 45, phase: "Fraud" },
-  ]
+export interface EvolutionPoint {
+  date: string
+  incidents: number
+  severity: number
+  phase: string
 }
 
-export async function getSocioEconomicData() {
-  return {
-    districts: [
-      { district: "Bengaluru Urban", totalCases: 6, solvedRate: 50, crimeDiversity: 4, urbanizationPct: 88, population: 12000000, literacyRate: 88, casesPer100k: 16.7 },
-      { district: "Mysuru", totalCases: 2, solvedRate: 100, crimeDiversity: 2, urbanizationPct: 74, population: 1300000, literacyRate: 84, casesPer100k: 7.7 },
-    ],
-    correlations: {
-      urbanizationVsCrime: 0.82,
-      literacyVsCrime: -0.38,
-    },
-  }
+export async function getEvolutionData(opts?: { district?: string; months?: number }): Promise<EvolutionPoint[]> {
+  return apiGet<EvolutionPoint[]>("evolution", {
+    district: opts?.district,
+    months: opts?.months?.toString(),
+  })
 }
 
-export async function getHotspotHistory() {
-  return [
-    { id: "H-1", name: "Koramangala", district: "Bengaluru Urban", lat: 12.9352, lng: 77.6245, incidents: 4 },
-    { id: "H-2", name: "MG Road", district: "Bengaluru Urban", lat: 12.9756, lng: 77.6067, incidents: 2 },
-  ]
+export interface SocioEconomicResponse {
+  districts: Array<{
+    district: string
+    totalCases: number
+    solvedRate: number
+    crimeDiversity: number
+    urbanizationPct: number
+    population: number
+    literacyRate: number
+    casesPer100k: number
+  }>
+  correlations: { urbanizationVsCrime: number; literacyVsCrime: number }
+}
+
+export async function getSocioEconomicData(): Promise<SocioEconomicResponse> {
+  return apiGet<SocioEconomicResponse>("socio-economic")
+}
+
+export interface HotspotRecord {
+  id: string
+  name: string
+  district: string | null
+  lat: number
+  lng: number
+  risk: number
+  incidents: number
+  trend: string
+}
+
+export async function getHotspotHistory(district?: string): Promise<HotspotRecord[]> {
+  return apiGet<HotspotRecord[]>("hotspots", { district })
 }
 
 // ---------------------------------------------------------------------------

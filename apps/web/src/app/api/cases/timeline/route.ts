@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server"
 import { getCaseTimeline } from "@/lib/backend-data"
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const district = searchParams.get("district")
+export async function GET() {
   const rows = await getCaseTimeline()
-
-  if (!district) {
-    return NextResponse.json(rows)
-  }
-
-  return NextResponse.json(rows.filter((row) => row.date?.includes("2025")))
+  return NextResponse.json(rows)
 }

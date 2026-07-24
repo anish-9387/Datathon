@@ -422,6 +422,263 @@ async def search(q: str = Query(..., min_length=1)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ---------------------------------------------------------------------------
+# Crime evolution — monthly dominant crime type + heinous-offence severity
+# ---------------------------------------------------------------------------
+
+# Crime types (and legacy group names) considered "heinous" for severity scoring.
+_HEINOUS_TYPES = (
+    "homicide", "murder", "sexual offense", "rape", "kidnapping",
+    "kidnapping & abduction", "riots", "rioting", "robbery", "dacoity",
+    "arson", "extortion",
+)
+
+
+@router.get("/evolution")
+async def get_evolution(
+    district: Optional[str] = Query(default=None),
+    months: int = Query(default=24, ge=1, le=120),
+):
+    """Monthly crime-evolution timeline derived from the FIR table.
+
+    For each month returns the dominant crime type (`phase`), the incident
+    count, and a `severity` score = share of heinous offences that month (0-100).
+    """
+    try:
+        conditions = ["f.date_time IS NOT NULL"]
+        params: list = []
+        if district:
+            conditions.append("LOWER(d.district_name) LIKE %s")
+            params.append(f"%{district.strip().lower()}%")
+        where = " AND ".join(conditions)
+
+        heinous_placeholders = ", ".join(["%s"] * len(_HEINOUS_TYPES))
+
+        rows = _query(
+            f"""
+            WITH monthly AS (
+                SELECT
+                  TO_CHAR(f.date_time, 'YYYY-MM') AS month,
+                  f.crime_type,
+                  COUNT(*)::int AS cnt,
+                  COUNT(CASE WHEN LOWER(COALESCE(f.crime_type, '')) IN ({heinous_placeholders})
+                          OR LOWER(COALESCE(f.crime_group, '')) IN ({heinous_placeholders})
+                        THEN 1 END)::int AS heinous_cnt
+                FROM firs f
+                LEFT JOIN police_stations ps ON f.police_station_id = ps.id
+                LEFT JOIN districts d ON ps.district_id = d.id
+                WHERE {where}
+                GROUP BY TO_CHAR(f.date_time, 'YYYY-MM'), f.crime_type
+            ),
+            agg AS (
+                SELECT
+                  month,
+                  SUM(cnt)::int AS incidents,
+                  SUM(heinous_cnt)::int AS heinous,
+                  (ARRAY_AGG(crime_type ORDER BY cnt DESC))[1] AS phase
+                FROM monthly
+                GROUP BY month
+            )
+            SELECT
+              month AS date,
+              incidents,
+              phase,
+              CASE WHEN incidents > 0
+                   THEN ROUND(heinous::numeric / incidents * 100, 1)
+                   ELSE 0 END AS severity
+            FROM agg
+            ORDER BY month ASC
+            """,
+            tuple(params + list(_HEINOUS_TYPES) + list(_HEINOUS_TYPES)),
+        )
+
+        for r in rows:
+            if r.get("severity") is not None:
+                r["severity"] = float(r["severity"])
+
+        return rows[-months:]
+    except Exception as e:
+        logger.error(f"get_evolution failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# Socio-economic — district demographics joined with live case counts
+# ---------------------------------------------------------------------------
+
+def _pearson(xs: list[float], ys: list[float]) -> float:
+    n = len(xs)
+    if n < 2:
+        return 0.0
+    mx = sum(xs) / n
+    my = sum(ys) / n
+    num = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    den_x = sum((x - mx) ** 2 for x in xs)
+    den_y = sum((y - my) ** 2 for y in ys)
+    den = (den_x * den_y) ** 0.5
+    if den == 0:
+        return 0.0
+    return round(num / den, 2)
+
+
+@router.get("/socio-economic")
+async def get_socio_economic():
+    """District socio-economic profile: real demographic columns from the
+    districts table joined with live case counts, plus Pearson correlations."""
+    try:
+        rows = _query("""
+            SELECT
+              d.district_name AS district,
+              COUNT(f.id)::int AS "totalCases",
+              COUNT(CASE WHEN LOWER(f.status) IN ('solved', 'chargesheeted') THEN 1 END)::int AS solved,
+              COUNT(DISTINCT f.crime_type)::int AS "crimeDiversity",
+              COALESCE(d.urbanization_pct, 0) AS "urbanizationPct",
+              COALESCE(d.population, 0) AS population,
+              COALESCE(d.literacy_rate, 0) AS "literacyRate"
+            FROM districts d
+            LEFT JOIN police_stations ps ON ps.district_id = d.id
+            LEFT JOIN firs f ON f.police_station_id = ps.id
+            GROUP BY d.district_name, d.urbanization_pct, d.population, d.literacy_rate
+            HAVING COUNT(f.id) > 0
+            ORDER BY COUNT(f.id) DESC
+        """)
+
+        districts = []
+        for r in rows:
+            total = r["totalCases"]
+            solved = r.pop("solved")
+            pop = float(r["population"]) or 0
+            cases_per_100k = round(total / pop * 100000, 1) if pop > 0 else 0.0
+            districts.append({
+                "district": r["district"],
+                "totalCases": total,
+                "solvedRate": round(solved / total * 100, 1) if total > 0 else 0.0,
+                "crimeDiversity": r["crimeDiversity"],
+                "urbanizationPct": round(float(r["urbanizationPct"]), 1),
+                "population": int(r["population"]),
+                "literacyRate": round(float(r["literacyRate"]), 1),
+                "casesPer100k": cases_per_100k,
+            })
+
+        urban = [d["urbanizationPct"] for d in districts]
+        literacy = [d["literacyRate"] for d in districts]
+        crime = [d["casesPer100k"] for d in districts]
+
+        return {
+            "districts": districts,
+            "correlations": {
+                "urbanizationVsCrime": _pearson(urban, crime),
+                "literacyVsCrime": _pearson(literacy, crime),
+            },
+        }
+    except Exception as e:
+        logger.error(f"get_socio_economic failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# Criminals — real records from the criminals table, enriched with live
+# case counts and latest incident dates from the FIR/accused tables.
+# ---------------------------------------------------------------------------
+
+@router.get("/criminals")
+async def get_criminals(district: Optional[str] = Query(default=None)):
+    """Return criminal records from the DB, with live case counts and last
+    incident dates computed from the accused/FIR tables (keyed by name)."""
+    try:
+        criminals = _query("""
+            SELECT
+              criminal_code AS id,
+              name,
+              COALESCE(age, 0) AS age,
+              COALESCE(crimes, 0) AS crimes,
+              COALESCE(influence, 0) AS influence,
+              COALESCE(betweenness, 0) AS betweenness,
+              COALESCE(repeat, false) AS repeat,
+              COALESCE(status, 'unknown') AS status,
+              COALESCE(gang_name, 'N/A') AS gang,
+              TO_CHAR(last_arrest, 'YYYY-MM-DD') AS "lastArrest"
+            FROM criminals
+            ORDER BY influence DESC
+        """)
+
+        # Live case counts + latest incident per accused name (optionally by district)
+        conditions = ["1=1"]
+        params: list = []
+        if district:
+            conditions.append("LOWER(d.district_name) LIKE %s")
+            params.append(f"%{district.strip().lower()}%")
+        where = " AND ".join(conditions)
+        stats = _query(f"""
+            SELECT
+              a.name,
+              COUNT(DISTINCT a.fir_id)::int AS cases,
+              TO_CHAR(MAX(f.date_time), 'YYYY-MM-DD') AS last_incident
+            FROM accused a
+            JOIN firs f ON f.id = a.fir_id
+            LEFT JOIN police_stations ps ON f.police_station_id = ps.id
+            LEFT JOIN districts d ON ps.district_id = d.id
+            WHERE {where}
+            GROUP BY a.name
+        """, tuple(params))
+        by_name = {s["name"]: s for s in stats}
+
+        for c in criminals:
+            for key in ("influence", "betweenness"):
+                if c.get(key) is not None:
+                    c[key] = float(c[key])
+            c["repeat"] = bool(c["repeat"])
+            live = by_name.get(c["name"])
+            c["liveCases"] = live["cases"] if live else 0
+            c["lastIncident"] = (live["last_incident"] if live else None) or (c["lastArrest"] or "N/A")
+
+        # If a district filter is set, keep only criminals with cases there.
+        if district:
+            criminals = [c for c in criminals if c["liveCases"] > 0]
+
+        return {"criminals": criminals, "total": len(criminals)}
+    except Exception as e:
+        logger.error(f"get_criminals failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# Hotspots — historical hotspots from the DB (optionally filtered by district)
+# ---------------------------------------------------------------------------
+
+@router.get("/hotspots")
+async def get_hotspots(district: Optional[str] = Query(default=None)):
+    try:
+        conditions = ["1=1"]
+        params: list = []
+        if district:
+            conditions.append("LOWER(district) LIKE %s")
+            params.append(f"%{district.strip().lower()}%")
+        where = " AND ".join(conditions)
+        rows = _query(f"""
+            SELECT
+              hotspot_code AS id,
+              name,
+              district,
+              lat,
+              lng,
+              risk,
+              incidents,
+              trend
+            FROM hotspots
+            WHERE {where}
+            ORDER BY risk DESC
+        """, tuple(params))
+        for r in rows:
+            for key in ("lat", "lng", "risk"):
+                if r.get(key) is not None:
+                    r[key] = float(r[key])
+        return rows
+    except Exception as e:
+        logger.error(f"get_hotspots failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/execute-sql")
 async def execute_sql(body: dict):
     """Execute a read-only SELECT query generated by the AI assistant.

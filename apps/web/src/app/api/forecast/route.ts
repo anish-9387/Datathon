@@ -83,9 +83,7 @@ export async function GET(request: Request) {
       .sort((a, b) => b.probability - a.probability)
 
     return NextResponse.json({
-      forecast: district
-        ? forecast
-        : forecast,
+      forecast,
       modelInfo: { name: "xgboost-v1", source: "ML Service — XGBoost Crime Predictor" },
     })
   } catch (e) {

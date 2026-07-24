@@ -19,14 +19,15 @@ export async function GET(request: Request) {
   const crimeType = searchParams.get("type") ?? ""
 
   try {
-    const allHotspots = await getHotspotHistory()
-    const historicalRows = allHotspots.filter((item) => !district || item.district?.toLowerCase().includes(district.toLowerCase()))
-
-    const predicted = await ml<HotspotResult>("forecasting/hotspot", {
-      district,
-      crime_type: crimeType,
-      grid_size: 50,
-    })
+    // Historical hotspots come from the DB; predicted grid from the ML model.
+    const [historicalRows, predicted] = await Promise.all([
+      getHotspotHistory(district || undefined).catch(() => []),
+      ml<HotspotResult>("forecasting/hotspot", {
+        district,
+        crime_type: crimeType,
+        grid_size: 50,
+      }),
+    ])
 
     return NextResponse.json({
       predicted: predicted.hotspots.map((h: { latitude: number; longitude: number; risk_score: number; predicted_crimes: number; confidence: number }, i: number) => ({
@@ -37,13 +38,15 @@ export async function GET(request: Request) {
         incidents: h.predicted_crimes,
         confidence: h.confidence,
       })),
-      historical: historicalRows.map((h, i) => ({
-        id: `H-${String(i + 1).padStart(3, "0")}`,
+      historical: historicalRows.map((h) => ({
+        id: h.id,
         name: h.name,
         district: h.district,
         lat: h.lat,
         lng: h.lng,
+        risk: h.risk,
         incidents: h.incidents,
+        trend: h.trend,
       })),
       modelInfo: predicted.model_info,
     })
