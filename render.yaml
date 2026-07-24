@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: crime-intel-ml
+    runtime: docker
+    repo: https://github.com/anish-9387/Datathon
+    branch: main
+    rootDir: apps/ml-service
+    dockerfilePath: apps/ml-service/Dockerfile
+    envVars:
+      - key: CORS_ORIGINS
+        value: https://crime-intel-web.onrender.com,http://localhost:3000
+      - key: LOG_LEVEL
+        value: INFO
+      - key: EMBEDDING_MODEL
+        value: all-MiniLM-L6-v2
+    healthCheckPath: /api/v1/health

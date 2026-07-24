@@ -6,4 +6,3 @@ __pycache__
 README.md
 poetry.lock
 pyproject.toml
-model_cache/
