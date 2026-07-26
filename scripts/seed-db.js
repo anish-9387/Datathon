@@ -1,8 +1,27 @@
 const { Pool } = require("pg")
 const bcrypt = require("bcryptjs")
+const { TARGET_FIR_COUNT, generateSyntheticFirs } = require("./synthetic-firs")
+const fs = require("fs")
+const path = require("path")
 
-const ROOT_DB_URL = process.env.DATABASE_ROOT_URL || "postgresql://postgres:postgres@localhost:5432/postgres"
+function loadLocalEnv() {
+  const envPath = path.join(__dirname, "..", ".env")
+  if (!fs.existsSync(envPath)) return
+
+  for (const line of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/)
+    if (match && process.env[match[1]] === undefined) {
+      process.env[match[1]] = match[2].replace(/^['"]|['"]$/g, "")
+    }
+  }
+}
+
+loadLocalEnv()
+
 const TARGET_DB_URL = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/crime_intel"
+const defaultRootUrl = new URL(TARGET_DB_URL)
+defaultRootUrl.pathname = "/postgres"
+const ROOT_DB_URL = process.env.DATABASE_ROOT_URL || defaultRootUrl.toString()
 
 async function seed() {
   console.log("--> Connecting to PostgreSQL server...")
@@ -390,7 +409,71 @@ async function seed() {
       },
     ]
 
-    for (const f of firTemplates) {
+    // The first eight are curated examples; the rest are deterministic synthetic
+    // training records so the dashboard has a representative analytical volume.
+    const allFirs = [...firTemplates, ...generateSyntheticFirs(firTemplates.length + 1)]
+    console.log(`--> Seeding ${allFirs.length} FIRs, Accused, Victims...`)
+
+    if (allFirs.length !== TARGET_FIR_COUNT) {
+      throw new Error(`Expected ${TARGET_FIR_COUNT} FIR seed records, received ${allFirs.length}`)
+    }
+
+    const firRows = await pool.query(
+      `INSERT INTO firs (
+         crime_no, date_time, crime_type, crime_group, district_id, police_station_id,
+         status, latitude, longitude, brief_facts, weapon, section_law, fir_text
+       )
+       SELECT * FROM UNNEST(
+         $1::varchar[], $2::timestamp[], $3::varchar[], $4::varchar[], $5::int[], $6::int[],
+         $7::varchar[], $8::float8[], $9::float8[], $10::text[], $11::varchar[], $12::varchar[], $13::text[]
+       ) AS seed(
+         crime_no, date_time, crime_type, crime_group, district_id, police_station_id,
+         status, latitude, longitude, brief_facts, weapon, section_law, fir_text
+       )
+       ON CONFLICT (crime_no) DO UPDATE SET
+         date_time = EXCLUDED.date_time, crime_type = EXCLUDED.crime_type,
+         crime_group = EXCLUDED.crime_group, district_id = EXCLUDED.district_id,
+         police_station_id = EXCLUDED.police_station_id, status = EXCLUDED.status,
+         latitude = EXCLUDED.latitude, longitude = EXCLUDED.longitude,
+         brief_facts = EXCLUDED.brief_facts, weapon = EXCLUDED.weapon,
+         section_law = EXCLUDED.section_law, fir_text = EXCLUDED.fir_text
+       RETURNING id, crime_no`,
+      [
+        allFirs.map((f) => f.crimeNo), allFirs.map((f) => f.date), allFirs.map((f) => f.crimeType), allFirs.map((f) => f.crimeGroup),
+        allFirs.map((f) => districtIds[f.district]), allFirs.map((f) => stationIds[f.station]), allFirs.map((f) => f.status),
+        allFirs.map((f) => f.lat), allFirs.map((f) => f.lng), allFirs.map((f) => f.facts), allFirs.map((f) => f.weapon),
+        allFirs.map((f) => f.section), allFirs.map((f) => f.firText || f.facts),
+      ]
+    )
+    const firIdsByNumber = Object.fromEntries(firRows.rows.map((row) => [row.crime_no, row.id]))
+
+    async function insertPeople(table, people) {
+      if (people.length === 0) return
+      await pool.query(
+        `WITH input AS (
+           SELECT * FROM UNNEST($1::int[], $2::varchar[], $3::int[], $4::text[])
+           AS seed(fir_id, name, age, profile)
+         )
+         INSERT INTO ${table} (fir_id, name, age, profile)
+         SELECT fir_id, name, age, profile FROM input i
+         WHERE NOT EXISTS (
+           SELECT 1 FROM ${table} p
+           WHERE p.fir_id = i.fir_id AND p.name = i.name
+             AND p.age IS NOT DISTINCT FROM i.age AND p.profile IS NOT DISTINCT FROM i.profile
+         )`,
+        [people.map((p) => p.firId), people.map((p) => p.name), people.map((p) => p.age), people.map((p) => p.profile)]
+      )
+    }
+
+    const accusedRows = allFirs.flatMap((f) => f.accused.map((person) => ({ ...person, firId: firIdsByNumber[f.crimeNo] })))
+    const victimRows = allFirs.flatMap((f) => f.victims.map((person) => ({ ...person, firId: firIdsByNumber[f.crimeNo] })))
+    await Promise.all([insertPeople("accused", accusedRows), insertPeople("victims", victimRows)])
+
+    // A bounded batch keeps remote PostgreSQL seeding fast without overwhelming
+    // the connection pool.
+    if (process.env.SEED_FIR_ROW_BY_ROW === "true") {
+    for (let offset = 0; offset < allFirs.length; offset += 50) {
+      await Promise.all(allFirs.slice(offset, offset + 50).map(async (f) => {
       const stId = stationIds[f.station]
       const distId = districtIds[f.district]
       const firRes = await pool.query(
@@ -398,22 +481,34 @@ async function seed() {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          ON CONFLICT (crime_no) DO UPDATE SET status = EXCLUDED.status
          RETURNING id`,
-        [f.crimeNo, f.date, f.crimeType, f.crimeGroup, distId, stId, f.status, f.lat, f.lng, f.facts, f.weapon, f.section, f.facts]
+        [f.crimeNo, f.date, f.crimeType, f.crimeGroup, distId, stId, f.status, f.lat, f.lng, f.facts, f.weapon, f.section, f.firText || f.facts]
       )
       const firId = firRes.rows[0].id
 
       for (const acc of f.accused) {
         await pool.query(
-          `INSERT INTO accused (fir_id, name, age, profile) VALUES ($1, $2, $3, $4)`,
+          `INSERT INTO accused (fir_id, name, age, profile)
+           SELECT $1::int, $2::varchar, $3::int, $4::text
+           WHERE NOT EXISTS (
+             SELECT 1 FROM accused
+             WHERE fir_id = $1::int AND name = $2::varchar AND age IS NOT DISTINCT FROM $3::int AND profile IS NOT DISTINCT FROM $4::text
+           )`,
           [firId, acc.name, acc.age, acc.profile]
         )
       }
       for (const vic of f.victims) {
         await pool.query(
-          `INSERT INTO victims (fir_id, name, age, profile) VALUES ($1, $2, $3, $4)`,
+          `INSERT INTO victims (fir_id, name, age, profile)
+           SELECT $1::int, $2::varchar, $3::int, $4::text
+           WHERE NOT EXISTS (
+             SELECT 1 FROM victims
+             WHERE fir_id = $1::int AND name = $2::varchar AND age IS NOT DISTINCT FROM $3::int AND profile IS NOT DISTINCT FROM $4::text
+           )`,
           [firId, vic.name, vic.age, vic.profile]
         )
       }
+      }))
+    }
     }
 
     console.log("--> Seeding Gangs...")

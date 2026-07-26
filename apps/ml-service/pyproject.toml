@@ -27,7 +27,6 @@ ruff = "^0.4"
 mypy = "^1.9"
 
 [tool.poetry.scripts]
-serve = "app.cli:serve"
 train-models = "app.train:main"
 
 [build-system]
